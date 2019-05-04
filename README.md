@@ -47,3 +47,8 @@ My Goals:
 Treat-offs:
 - You need React v16.8 or greater
 - It does not work for class components
+
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-url]: https://github.com/fdc-viktor-luft/form4react/blob/master/LICENSE
+[prettier-image]: https://img.shields.io/badge/styled_with-prettier-ff69b4.svg
+[prettier-url]: https://github.com/prettier/prettier
