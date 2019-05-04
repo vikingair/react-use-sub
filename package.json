@@ -1,0 +1,66 @@
+{
+  "name": "react-use-sub",
+  "version": "0.0.1",
+  "description": "Subscription based lightweight React store",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "src/index.d.ts",
+  "files": [
+    "dist/cjs",
+    "dist/esm",
+    "src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fdc-viktor-luft/react-use-sub"
+  },
+  "keywords": [
+    "React",
+    "flow",
+    "TypeScript",
+    "Store",
+    "useSub"
+  ],
+  "author": "Viktor Luft <viktor.luft@freiheit.com> (https://github.com/fdc-viktor-luft)",
+  "license": "MIT",
+  "scripts": {
+    "dist": "rm -rf dist && rollup -c",
+    "eslint": "eslint --cache --cache-location 'build/.eslintcache' src/ test/",
+    "flow": "flow --quiet",
+    "test": "npm run flow && npm run eslint && npm run test-coverage",
+    "test-coverage": "jest --all --coverage",
+    "prettier": "prettier --config .prettierrc --write src/**/*.js test/**/*.js",
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
+  },
+  "peerDependencies": {
+    "react": ">= 16.8.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-class-properties": "^7.3.4",
+    "@babel/preset-env": "^7.4.4",
+    "@babel/preset-flow": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "babel-eslint": "^10.0.1",
+    "babel-jest": "^24.7.1",
+    "coveralls": "^3.0.3",
+    "eslint": "^5.16.0",
+    "eslint-config-prettier": "^4.2.0",
+    "eslint-plugin-flowtype": "^3.6.1",
+    "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-react": "^7.13.0",
+    "flow-bin": "^0.98.0",
+    "jest": "^24.7.1",
+    "prettier": "^1.17.0",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-test-renderer": "^16.8.6",
+    "react-testing-library": "^7.0.0",
+    "rollup": "^1.10.1",
+    "rollup-plugin-babel": "^4.3.2",
+    "rollup-plugin-commonjs": "^9.3.4",
+    "rollup-plugin-flow-entry": "^0.3.1",
+    "rollup-plugin-node-resolve": "^4.2.3"
+  }
+}
