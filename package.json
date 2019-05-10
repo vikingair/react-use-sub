@@ -1,6 +1,6 @@
 {
   "name": "react-use-sub",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Subscription based lightweight React store",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
