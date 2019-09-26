@@ -14,7 +14,7 @@ export default {
         commonjs(),
         flowEntry(),
     ],
-    external: ['react'],
+    external: ['react', 'react-dom'],
     output: [{
         dir: 'dist/cjs',
         format: 'cjs'

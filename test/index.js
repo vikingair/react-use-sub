@@ -1,8 +1,12 @@
 // @flow
 
 import React from 'react';
-import { render, act } from 'react-testing-library';
+import { render, act } from '@testing-library/react';
 import { createStore } from '../src';
+
+// jest.mock('react-dom', () => ({
+//     unstable_batchedUpdates: func => func(),
+// }));
 
 describe('createStore', () => {
     it('creates a store that can be updated', () => {
