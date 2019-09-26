@@ -38,7 +38,7 @@ My Goals:
 - No context
 - TypeScript support
 - Flow support
-- Very small package size
+- Very small package size (513 bytes)
 - No dependencies
 - Very easy to use
 - Better performance than React-Redux
