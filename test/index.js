@@ -4,9 +4,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react';
 import { createStore } from '../src';
 
-// jest.mock('react-dom', () => ({
-//     unstable_batchedUpdates: func => func(),
-// }));
+jest.useFakeTimers();
 
 describe('createStore', () => {
     it('creates a store that can be updated', () => {
@@ -84,14 +82,17 @@ describe('createStore', () => {
 
         // no new render when unmapped prop gets updated
         Store.set({ hip: 'whatever' });
+        jest.runAllTimers();
         expect(renderCount).toBe(1);
 
         // no new render when mapped prop produces same output
         Store.set({ bar: 4 });
+        jest.runAllTimers();
         expect(renderCount).toBe(1);
 
         // only one rerender even if multiple things change
         act(() => Store.set({ foo: 'change coming', bar: 5 }));
+        jest.runAllTimers();
         expect(renderCount).toBe(2);
         expect(currentReceived).toEqual({
             fooMapped: 'change coming',
@@ -99,11 +100,21 @@ describe('createStore', () => {
             foo: true,
         });
 
+        // enqueues multiple calls to Store.set
+        act(() => {
+            Store.set({ foo: 'update 1' });
+            Store.set({ foo: 'update 2' });
+        });
+        jest.runAllTimers();
+        expect(renderCount).toBe(3); // only one render was necessary
+        expect(currentReceived.fooMapped).toBe('update 2');
+
         // deletes subscription after unmount
         unmount();
 
         // no update will be triggered anymore
-        Store.set({ bar: 5 });
-        expect(renderCount).toBe(2);
+        Store.set({ foo: 'anything' });
+        jest.runAllTimers();
+        expect(renderCount).toBe(3);
     });
 });

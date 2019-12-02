@@ -3,6 +3,6 @@ node_js:
   - "stable"
 sudo: false
 script:
-    - "npm test"
+    - "yarn test"
 after_success:
-    - 'npm run coveralls'
+    - 'yarn run coveralls'

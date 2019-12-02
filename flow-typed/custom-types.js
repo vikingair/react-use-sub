@@ -1,5 +1,6 @@
 // @flow
 
+declare var jest: any;
 declare function expect(any): any;
 declare function describe(string, Function): any;
 declare function it(string, Function): any;

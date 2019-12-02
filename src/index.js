@@ -17,6 +17,8 @@ type StoreSet<DATA> = (update: StoreSetArg<DATA>) => void;
 type StoreType<DATA> = { get: () => DATA, set: StoreSet<DATA> };
 type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
+const _enqueue = (fn: () => void) => window.setTimeout(fn, 0);
+
 const _dispatch = <DATA: {}>(D: InternalDataStore<DATA>): void =>
     batch(() => {
         D.subs.forEach(({ mapper, update, last }) => {
@@ -42,7 +44,7 @@ const _center = <DATA: {}>(D: InternalDataStore<DATA>): StoreType<DATA> => ({
     set: (update: StoreSetArg<DATA>) => {
         const next: $Shape<DATA> = typeof update === 'function' ? update(D.data) : update;
         _update(D, next);
-        _dispatch(D);
+        _enqueue(() => _dispatch(D));
     },
 });
 
