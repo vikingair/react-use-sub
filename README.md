@@ -3,7 +3,7 @@
 
 # react-use-sub
 
-WIP: Subscription based lightweight React store
+Subscription based lightweight React store.
 
 How it looks:
 ```js
@@ -38,14 +38,14 @@ My Goals:
 - No context
 - TypeScript support
 - Flow support
-- Very small package size (513 bytes)
+- Very small package size (< 1kB gzipped)
 - No dependencies
 - Very easy to use
-- Better performance than React-Redux
+- Much better performance than React-Redux
 - Scalability
 
 Treat-offs:
-- You need React v16.8 or greater
+- You need React v16.8 or greater (hook support)
 - It does not work for class components
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg

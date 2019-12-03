@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { unstable_batchedUpdates as batch } from 'react-dom';
 
-type Mapper<DATA, OP = { [prop: string]: any }> = (state: DATA) => OP;
+type Mapper<DATA, OP> = (state: DATA) => OP;
 type Updater<OP> = (OP | (OP => OP)) => void;
 type Sub<DATA, OP> = { mapper: Mapper<DATA, OP>, update: Updater<OP>, last: OP };
 type InternalDataStore<DATA> = {
@@ -18,12 +18,18 @@ type StoreType<DATA> = { get: () => DATA, set: StoreSet<DATA> };
 type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
 const _enqueue = (fn: () => void) => window.setTimeout(fn, 0);
+const _notObject = (a: any): boolean => Object.prototype.toString.call(a) !== '[object Object]';
+const _diff = (a: any, b: any): boolean => {
+    if (a === b) return false;
+    if (_notObject(a) || _notObject(b)) return true;
+    return Object.keys(a).some((prop: string) => b[prop] !== a[prop]);
+};
 
 const _dispatch = <DATA: {}>(D: InternalDataStore<DATA>): void =>
     batch(() => {
         D.subs.forEach(({ mapper, update, last }) => {
             const nowMapped = mapper(D.data);
-            if (Object.keys(nowMapped).some((prop: string) => last[prop] !== nowMapped[prop])) {
+            if (_diff(nowMapped, last)) {
                 update(nowMapped);
             }
         });

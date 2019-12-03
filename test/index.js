@@ -58,7 +58,7 @@ describe('createStore', () => {
         (Store.get().foo: string | null);
     });
 
-    it('subscribes to store changes', () => {
+    it('subscribes to store changes for mapped objects', () => {
         const [useSub, Store] = createStore({ foo: 'bar', bar: 2, hip: '' });
         let currentReceived: any = {};
         let renderCount = 0;
@@ -108,6 +108,60 @@ describe('createStore', () => {
         jest.runAllTimers();
         expect(renderCount).toBe(3); // only one render was necessary
         expect(currentReceived.fooMapped).toBe('update 2');
+
+        // deletes subscription after unmount
+        unmount();
+
+        // no update will be triggered anymore
+        Store.set({ foo: 'anything' });
+        jest.runAllTimers();
+        expect(renderCount).toBe(3);
+    });
+
+    it('subscribes to store changes for any other types', () => {
+        const [useSub, Store] = createStore({ foo: 'bar', bar: 2, hip: '', test: (null: null | string[]) });
+        let currentReceived: any = null;
+        let currentReceived2: any = [];
+        let renderCount = 0;
+        const Dummy = () => {
+            ++renderCount;
+            currentReceived = useSub(({ foo, hip }) => `${foo} ${hip}`);
+            currentReceived2 = useSub(({ test }) => test);
+            return null;
+        };
+        const { unmount } = render(<Dummy />);
+
+        expect(renderCount).toBe(1);
+        expect(currentReceived).toBe('bar ');
+        expect(currentReceived2).toBe(null);
+
+        // no new render when unmapped prop gets updated
+        Store.set({ bar: 777 });
+        jest.runAllTimers();
+        expect(renderCount).toBe(1);
+
+        // no new render when mapped prop produces same output
+        Store.set({ hip: '' });
+        jest.runAllTimers();
+        expect(renderCount).toBe(1);
+
+        // only one rerender even if multiple things change
+        act(() => Store.set({ hip: 'next' }));
+        jest.runAllTimers();
+        expect(renderCount).toBe(2);
+        expect(currentReceived).toBe('bar next');
+        expect(currentReceived2).toBe(null);
+
+        // enqueues multiple calls to Store.set
+        act(() => {
+            Store.set({ foo: 'update 1' });
+            Store.set({ test: ['here'] });
+            Store.set({ foo: 'update 2' });
+        });
+        jest.runAllTimers();
+        expect(renderCount).toBe(3); // only one render was necessary
+        expect(currentReceived).toBe('update 2 next');
+        expect(currentReceived2).toEqual(['here']);
 
         // deletes subscription after unmount
         unmount();
