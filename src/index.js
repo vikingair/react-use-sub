@@ -18,11 +18,17 @@ type StoreType<DATA> = { get: () => DATA, set: StoreSet<DATA> };
 type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
 const _enqueue = (fn: () => void) => window.setTimeout(fn, 0);
-const _notObject = (a: any): boolean => Object.prototype.toString.call(a) !== '[object Object]';
+const _type = (a: any): string => Object.prototype.toString.call(a);
 const _diff = (a: any, b: any): boolean => {
     if (a === b) return false;
-    if (_notObject(a) || _notObject(b)) return true;
-    return Object.keys(a).some((prop: string) => b[prop] !== a[prop]);
+    const aType = _type(a);
+    if (aType !== _type(b)) return true;
+    if (aType === '[object Object]' || aType === '[object Array]') {
+        return Object.keys(a)
+            .concat(Object.keys(b))
+            .some((prop: string) => b[prop] !== a[prop]);
+    }
+    return true;
 };
 
 const _dispatch = <DATA: {}>(D: InternalDataStore<DATA>): void =>

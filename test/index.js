@@ -163,6 +163,11 @@ describe('createStore', () => {
         expect(currentReceived).toBe('update 2 next');
         expect(currentReceived2).toEqual(['here']);
 
+        // no new render when mapped array produces same output
+        Store.set({ test: ['here'] });
+        jest.runAllTimers();
+        expect(renderCount).toBe(3);
+
         // deletes subscription after unmount
         unmount();
 
