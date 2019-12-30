@@ -23,11 +23,11 @@ const _diff = (a: any, b: any): boolean => {
     if (a === b) return false;
     const aType = _type(a);
     if (aType !== _type(b)) return true;
-    if (aType === '[object Object]' || aType === '[object Array]') {
+    if (aType === '[object Array]') return a.length !== b.length || Object.keys(a).some((i: string) => b[i] !== a[i]);
+    if (aType === '[object Object]')
         return Object.keys(a)
             .concat(Object.keys(b))
-            .some((prop: string) => b[prop] !== a[prop]);
-    }
+            .some((i: string) => b[i] !== a[i]);
     return true;
 };
 

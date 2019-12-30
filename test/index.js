@@ -119,7 +119,12 @@ describe('createStore', () => {
     });
 
     it('subscribes to store changes for any other types', () => {
-        const [useSub, Store] = createStore({ foo: 'bar', bar: 2, hip: '', test: (null: null | string[]) });
+        const [useSub, Store] = createStore({
+            foo: 'bar',
+            bar: 2,
+            hip: '',
+            test: (null: null | Array<string | void>),
+        });
         let currentReceived: any = null;
         let currentReceived2: any = [];
         let renderCount = 0;
@@ -168,12 +173,20 @@ describe('createStore', () => {
         jest.runAllTimers();
         expect(renderCount).toBe(3);
 
+        // updates if array length changes
+        act(() => {
+            Store.set({ test: ['here', undefined] });
+        });
+        jest.runAllTimers();
+        expect(renderCount).toBe(4); // only one render was necessary
+        expect(currentReceived2).toEqual(['here', undefined]);
+
         // deletes subscription after unmount
         unmount();
 
         // no update will be triggered anymore
         Store.set({ foo: 'anything' });
         jest.runAllTimers();
-        expect(renderCount).toBe(3);
+        expect(renderCount).toBe(4);
     });
 });
