@@ -189,4 +189,57 @@ describe('createStore', () => {
         jest.runAllTimers();
         expect(renderCount).toBe(4);
     });
+
+    it('allows arbitrary mapper modifications', () => {
+        const [useSub, Store] = createStore({ foo: 'bar' });
+        let currentReceived: any = null;
+        let renderCount = 0;
+        const Dummy = ({ num, some }: { num: number, some: string }) => {
+            ++renderCount;
+            currentReceived = useSub(({ foo }) => `${foo} ${num} ${some}`, [num]);
+            return null;
+        };
+        const { rerender } = render(<Dummy num={1} some="happy" />);
+
+        // initial render
+        expect(renderCount).toBe(1);
+        expect(currentReceived).toBe('bar 1 happy');
+
+        // rerender the component with different property value for num
+        rerender(<Dummy num={2} some="happy" />);
+
+        // the changed dep array let's you return the latest value
+        expect(renderCount).toBe(2);
+        expect(currentReceived).toBe('bar 2 happy');
+
+        // the update of the store value still works and
+        // updates only once
+        act(() => {
+            Store.set({ foo: 'anything' });
+        });
+        jest.runAllTimers();
+
+        expect(renderCount).toBe(3);
+        expect(currentReceived).toBe('anything 2 happy');
+
+        // even with dep array no update, if mapped value did not change
+        Store.set({ foo: 'anything' });
+        jest.runAllTimers();
+        expect(renderCount).toBe(3);
+
+        // rerender the component with different property value for some
+        rerender(<Dummy num={2} some="sad" />);
+
+        // the dep array did not change, therefore we still return the old value
+        expect(renderCount).toBe(4);
+        expect(currentReceived).toBe('anything 2 happy');
+
+        // rerender the component with different property value for num again
+        rerender(<Dummy num={3} some="sad" />);
+
+        // but after changing the dep array again the latest value for "some"
+        // will be considered
+        expect(renderCount).toBe(5);
+        expect(currentReceived).toBe('anything 3 sad');
+    });
 });

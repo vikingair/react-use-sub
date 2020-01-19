@@ -5,7 +5,16 @@
 
 Subscription based lightweight React store.
 
-How it looks:
+### Benefits
+- easy to use
+- easy testing
+- no dependencies
+- no react context
+- TypeScript and Flow support
+- Very small package size (< 1kB gzipped)
+- Much better performance than react-redux
+
+### Examples
 ```js
 // >>> in your store.js
 import { createStore } from 'react-use-sub';
@@ -33,20 +42,6 @@ expect(Store.get()).toEqual({ foo: 'something' });
 // and updates all components that would be passed
 // different values from the subscribed store mapper
 ```
-
-My Goals:
-- No context
-- TypeScript support
-- Flow support
-- Very small package size (< 1kB gzipped)
-- No dependencies
-- Very easy to use
-- Much better performance than React-Redux
-- Scalability
-
-Treat-offs:
-- You need React v16.8 or greater (hook support)
-- It does not work for class components
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/fdc-viktor-luft/form4react/blob/master/LICENSE

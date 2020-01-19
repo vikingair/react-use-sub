@@ -11,7 +11,7 @@ type InternalDataStore<DATA> = {
     subs: Set<Sub<DATA, any>>,
     keys: Array<$Keys<DATA>>,
 };
-type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>) => OP;
+type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>, deps?: $ReadOnlyArray<mixed>) => OP;
 type StoreSetArg<DATA> = $Shape<DATA> | ((prev: DATA) => $Shape<DATA>);
 type StoreSet<DATA> = (update: StoreSetArg<DATA>) => void;
 type StoreType<DATA> = { get: () => DATA, set: StoreSet<DATA> };
@@ -19,11 +19,13 @@ type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
 const _enqueue = (fn: () => void) => window.setTimeout(fn, 0);
 const _type = (a: any): string => Object.prototype.toString.call(a);
+const _diffArr = (a: $ReadOnlyArray<any>, b: $ReadOnlyArray<any>): boolean =>
+    a.length !== b.length || a.some((v, i) => b[i] !== v);
 const _diff = (a: any, b: any): boolean => {
     if (a === b) return false;
     const aType = _type(a);
     if (aType !== _type(b)) return true;
-    if (aType === '[object Array]') return a.length !== b.length || Object.keys(a).some((i: string) => b[i] !== a[i]);
+    if (aType === '[object Array]') return _diffArr(a, b);
     if (aType === '[object Object]')
         return Object.keys(a)
             .concat(Object.keys(b))
@@ -60,6 +62,8 @@ const _center = <DATA: {}>(D: InternalDataStore<DATA>): StoreType<DATA> => ({
     },
 });
 
+const _emptyDeps = [];
+
 export const createStore = <DATA: {}>(data: DATA): CreateStoreReturn<DATA> => {
     const keys: any[] = Object.keys(data);
     const D: InternalDataStore<DATA> = {
@@ -68,10 +72,17 @@ export const createStore = <DATA: {}>(data: DATA): CreateStoreReturn<DATA> => {
         keys,
     };
     const Store = _center(D);
-    const useSub = <OP>(mapper: Mapper<DATA, OP>): OP => {
+    const useSub = <OP>(mapper: Mapper<DATA, OP>, deps: $ReadOnlyArray<mixed> = _emptyDeps): OP => {
+        const lastDeps = useRef(deps);
         const [mapped, update] = useState<OP>(() => mapper(D.data));
         const sub = useRef<Sub<DATA, OP>>({ mapper, update, last: mapped });
         sub.current.last = mapped;
+
+        if (_diffArr(lastDeps.current, deps)) {
+            sub.current.mapper = mapper;
+            sub.current.last = mapper(D.data);
+        }
+        lastDeps.current = deps;
 
         useEffect(() => {
             D.subs.add(sub.current);
@@ -80,7 +91,7 @@ export const createStore = <DATA: {}>(data: DATA): CreateStoreReturn<DATA> => {
             };
         }, []); // eslint-disable-line
 
-        return mapped;
+        return sub.current.last;
     };
 
     return [useSub, Store];
