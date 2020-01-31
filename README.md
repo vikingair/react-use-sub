@@ -1,4 +1,7 @@
 [![GitHub license][license-image]][license-url]
+[![npm package][npm-image]][npm-url] 
+[![Travis][build-image]][build-url]
+[![Coverage Status][coveralls-image]][coveralls-url]
 [![styled with prettier][prettier-image]][prettier-url]
 
 # react-use-sub
@@ -10,7 +13,7 @@ Subscription based lightweight React store.
 - easy testing
 - no dependencies
 - no react context
-- TypeScript and Flow support
+- TypeScript support included
 - Very small package size (< 1kB gzipped)
 - Much better performance than react-redux
 
@@ -44,6 +47,12 @@ expect(Store.get()).toEqual({ foo: 'something' });
 ```
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-[license-url]: https://github.com/fdc-viktor-luft/form4react/blob/master/LICENSE
+[license-url]: https://github.com/fdc-viktor-luft/react-use-sub/blob/master/LICENSE
+[build-image]: https://img.shields.io/travis/fdc-viktor-luft/react-use-sub/master.svg?style=flat-square
+[build-url]: https://travis-ci.org/fdc-viktor-luft/react-use-sub
+[npm-image]: https://img.shields.io/npm/v/react-use-sub.svg?style=flat-square
+[npm-url]: https://www.npmjs.org/package/react-use-sub
+[coveralls-image]: https://coveralls.io/repos/github/fdc-viktor-luft/react-use-sub/badge.svg?branch=master
+[coveralls-url]: https://coveralls.io/github/fdc-viktor-luft/react-use-sub?branch=master
 [prettier-image]: https://img.shields.io/badge/styled_with-prettier-ff69b4.svg
 [prettier-url]: https://github.com/prettier/prettier

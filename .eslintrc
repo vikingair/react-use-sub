@@ -2,38 +2,36 @@
   "extends": [
     "plugin:react/recommended",
     "eslint:recommended",
-    "prettier",
-    "prettier/flowtype",
-    "plugin:flowtype/recommended"
+    "prettier"
   ],
-  "plugins": [
-    "prettier",
-    "flowtype"
-  ],
+  "plugins": ["prettier", "@typescript-eslint"],
   "env": {
     "jest": true,
     "browser": true,
     "es6": true
   },
-  "parser": "babel-eslint",
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
   "rules": {
-    "prettier/prettier": ["error", {
-      "useTabs": false,
-      "printWidth": 120,
-      "tabWidth": 4,
-      "singleQuote": true,
-      "trailingComma": "es5",
-      "jsxBracketSameLine": true,
-      "parser": "flow"}],
-    "no-unused-vars": 2,
-    "flowtype/require-valid-file-annotation": [2, "always"],
-    "no-duplicate-imports": 2
+    "prettier/prettier": "error",
+    "arrow-body-style": ["error", "as-needed"],
+    "no-unused-vars": "off",
+    "no-duplicate-imports": "error",
+    "@typescript-eslint/no-array-constructor": "error",
+    "@typescript-eslint/no-namespace": "error",
+    "@typescript-eslint/no-unused-vars": ["error", {"args": "none", "ignoreRestSiblings": true}],
+    "no-console": "error"
   },
   "settings": {
     "react": {
       "pragma": "React",
-      "version": "16.8",
-      "flowVersion": "0.98"
+      "version": "16.8"
     }
   }
 }

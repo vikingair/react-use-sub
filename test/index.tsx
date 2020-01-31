@@ -1,5 +1,3 @@
-// @flow
-
 import React from 'react';
 import { render, act } from '@testing-library/react';
 import { createStore } from '../src';
@@ -21,7 +19,7 @@ describe('createStore', () => {
 
         // invalid property will be ignored
         // flow would even complain (see any-cast)
-        Store.set({ [('what': any)]: 'hip' });
+        Store.set({ ['what' as any]: 'hip' });
         expect(Store.get()).toEqual({ foo: 'hop again', bar: 3 });
 
         Store.set(({ foo, bar }) => ({ foo: foo + ' 2', bar: ++bar }));
@@ -30,20 +28,21 @@ describe('createStore', () => {
         // undefined is fine and has no effect
         // but null is treated as possible value, but bar is of type number
         // therefore the any cast is required
-        Store.set({ foo: undefined, bar: (null: any) });
+        Store.set({ foo: undefined, bar: null as any });
         expect(Store.get()).toEqual({ foo: 'hop again 2', bar: null });
 
         // now produce some errors
         // flow would save us -> see required any casts
-        Store.set(({ foo, bar }) => ({ foo: (bar: any), bar: (foo: any) }));
+        Store.set(({ foo, bar }) => ({ foo: bar as any, bar: foo as any }));
         expect(Store.get()).toEqual({ bar: 'hop again 2', foo: null });
 
-        (Store.get().foo: string);
-        (Store.get().bar: number);
+        // type checks
+        Store.get().foo as string;
+        Store.get().bar as number;
     });
 
     it('allows nullable types', () => {
-        const Store = createStore<{| foo: string | null |}>({
+        const Store = createStore<{ foo: string | null }>({
             foo: 'bar',
         })[1];
 
@@ -55,7 +54,8 @@ describe('createStore', () => {
         Store.set({ foo: 'hop' });
         expect(Store.get()).toEqual({ foo: 'hop' });
 
-        (Store.get().foo: string | null);
+        // type checks
+        Store.get().foo as string | null;
     });
 
     it('subscribes to store changes for mapped objects', () => {
@@ -123,7 +123,7 @@ describe('createStore', () => {
             foo: 'bar',
             bar: 2,
             hip: '',
-            test: (null: null | Array<string | void>),
+            test: null as null | Array<string | void>,
         });
         let currentReceived: any = null;
         let currentReceived2: any = [];
@@ -194,7 +194,7 @@ describe('createStore', () => {
         const [useSub, Store] = createStore({ foo: 'bar' });
         let currentReceived: any = null;
         let renderCount = 0;
-        const Dummy = ({ num, some }: { num: number, some: string }) => {
+        const Dummy = ({ num, some }: { num: number; some: string }) => {
             ++renderCount;
             currentReceived = useSub(({ foo }) => `${foo} ${num} ${some}`, [num]);
             return null;

@@ -1,10 +1,10 @@
 {
   "name": "react-use-sub",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Subscription based lightweight React store",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
-  "types": "src/index.d.ts",
+  "types": "src/index.tsx",
   "files": [
     "dist/cjs",
     "dist/esm",
@@ -16,7 +16,6 @@
   },
   "keywords": [
     "React",
-    "flow",
     "TypeScript",
     "Store",
     "useSub"
@@ -25,11 +24,9 @@
   "license": "MIT",
   "scripts": {
     "dist": "rm -rf dist && rollup -c",
-    "eslint": "eslint --cache --cache-location 'build/.eslintcache' src/ test/",
-    "flow": "flow --quiet",
-    "test": "yarn flow && yarn eslint && yarn test-coverage",
-    "test-coverage": "jest --all --coverage",
-    "prettier": "prettier --config .prettierrc --write src/**/*.js test/**/*.js",
+    "eslint": "eslint --cache --cache-location 'build/.eslintcache' --ext .ts,.tsx src/ test/",
+    "test": "yarn tsc && yarn eslint && yarn test-coverage",
+    "test-coverage": "jest --all --coverage --colors",
     "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "peerDependencies": {
@@ -38,28 +35,31 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@babel/core": "^7.7.7",
-    "@babel/plugin-proposal-class-properties": "^7.7.4",
-    "@babel/preset-env": "^7.7.7",
-    "@babel/preset-flow": "^7.7.4",
-    "@babel/preset-react": "^7.7.4",
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/preset-react": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
     "@testing-library/react": "^9.4.0",
-    "babel-eslint": "^10.0.3",
-    "babel-jest": "^24.9.0",
+    "@types/jest": "^25.1.1",
+    "@types/react": "^16.9.19",
+    "@types/react-dom": "^16.9.5",
+    "@typescript-eslint/eslint-plugin": "^2.18.0",
+    "@typescript-eslint/parser": "^2.18.0",
+    "babel-jest": "^25.1.0",
     "coveralls": "^3.0.9",
     "eslint": "^6.8.0",
-    "eslint-config-prettier": "^6.9.0",
-    "eslint-plugin-flowtype": "^4.5.2",
+    "eslint-config-prettier": "^6.10.0",
     "eslint-plugin-prettier": "^3.1.2",
-    "eslint-plugin-react": "^7.17.0",
-    "flow-bin": "^0.114.0",
-    "jest": "^24.9.0",
+    "eslint-plugin-react": "^7.18.0",
+    "jest": "^25.1.0",
     "prettier": "^1.19.1",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-test-renderer": "^16.12.0",
-    "rollup": "^1.27.14",
+    "rollup": "^1.31.0",
     "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-flow-entry": "^0.3.3"
+    "rollup-plugin-typescript2": "^0.25.3",
+    "typescript": "^3.7.5"
   }
 }

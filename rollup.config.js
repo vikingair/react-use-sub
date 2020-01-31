@@ -1,14 +1,14 @@
 import babel from 'rollup-plugin-babel';
-import flowEntry from 'rollup-plugin-flow-entry';
+import typescript from 'rollup-plugin-typescript2';
 
 export default {
-    input: 'src/index.js',
+    input: 'src/index.tsx',
     plugins: [
         babel({
             exclude: 'node_modules/**',
             presets: [['@babel/preset-env', { modules: false, targets: { node: '8' } }]],
         }),
-        flowEntry(),
+        typescript(),
     ],
     external: ['react', 'react-dom'],
     output: [
