@@ -22,7 +22,7 @@ Subscription based lightweight React store.
 // >>> in your store.js
 import { createStore } from 'react-use-sub';
 
-const initialState = { foo: 'bar' };
+const initialState = { foo: 'bar', num: 2 };
 export const [useSub, Store] = createStore(initialState);
 
 // >>> in any component
@@ -30,9 +30,10 @@ import { useSub } from '/path/to/store.js';
 
 export const App = () => {
     // subscribe here your custom store mapper
-    const { fooLength } = useSub(({ foo }) => ({ fooLength: foo.length }));
+    const { fooLength, num } = useSub(({ foo, num }) => ({ fooLength: foo.length, num }));
+    const square = useSub(({ num }) => num**2);
     
-    return <div>Foo has length: {fooLength}</div>;
+    return <div>Magic number is: {fooLength * num * square}</div>;
 }
 
 // >>> in any other (or same) place
@@ -41,7 +42,7 @@ import { Store } from '/path/to/store.js';
 // signature equally to the Setter function of useState
 Store.set({ foo: 'something' });
 // this updates the stored data
-expect(Store.get()).toEqual({ foo: 'something' });
+expect(Store.get()).toEqual({ foo: 'something', num: 2 });
 // and updates all components that would be passed
 // different values from the subscribed store mapper
 ```
