@@ -1,6 +1,6 @@
 {
   "name": "react-use-sub",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Subscription based lightweight React store",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -27,7 +27,7 @@
     "eslint": "eslint --cache --cache-location 'build/.eslintcache' --ext .ts,.tsx src/ test/",
     "test": "yarn tsc && yarn eslint && yarn test-coverage",
     "test-coverage": "jest --all --coverage --colors",
-    "coveralls": "cat ./coverage/lcov.info | coveralls"
+    "coveralls": "cat ./build/coverage/lcov.info | coveralls"
   },
   "peerDependencies": {
     "react": "^16.8.0",

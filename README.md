@@ -47,6 +47,87 @@ expect(Store.get()).toEqual({ foo: 'something', num: 2 });
 // different values from the subscribed store mapper
 ```
 
+## Hints
+Let me introduce you to some interesting things.
+### Optional types
+Since TypeScript [can not distinguish](https://github.com/microsoft/TypeScript/issues/13195)
+between missing fields and undefined values, you have to use `null` 
+on top-level. Please don't use optional fields on top-level. Updates
+with `undefined` on top-level will be simply ignored.
+```ts
+// BAD
+type State = { lastVisit?: Date };
+
+// GOOD
+type State = { lastVisit: null | Date };
+```
+
+### Subscription with dependencies
+Sometimes you may want to subscribe your component to state that depends
+on additional component state. This can be accomplished with the typical
+dependency array most of us got used to with most basic React hooks.
+```ts
+export const FancyItem: React.FC<{ id: string }> = ({ id }) => {
+    const { name, color } = useSub(({ items }) => items[id], [id]);
+    
+    return <div style={{ color }}>{name}</div>;
+}
+```
+But you shouldn't provide an empty array as second argument to `useSub`,
+since internal optimizations make this the default.
+
+### Shallow equality optimization
+The returned value of the defined mapper will be compared shallowly against
+the next computed value to determine if some rerender is necessary. E.g.
+following the example of the `App` component above:
+```ts
+// if Store.get().foo === 'bar'
+Store.set({ foo: '123' });
+// --> no rerender since "foo.length" did not change
+
+// if Store.get().num === 3
+Store.set({ num: 3 });
+// --> no rerender since "num" did not change
+```
+
+### Multiple subscriptions in a single component
+Please feel free to use multiple subscriptions in a single component.
+```ts
+export const GreatArticle = () => {
+    const { id, author, title } = useSub(({ article }) => article);
+    const reviews = useSub(({ reviews }) => reviews);
+    const trailer = useSub(({ trailers, recommendations }) => [trailer[id], recommendations[id]], [id]);
+    
+    return (...);
+}
+```
+Whenever a store update would trigger any of the above subscriptions the
+component will be rerendered only once even if all subscriptions would
+return different data. That's a pretty important capability when thinking
+about custom hooks that subscribe to certain states.
+
+### Multiple store updates
+If you perform multiple store updates in the same synchronous task this
+has (almost) no negative impact on your performance and leads not to any
+unnecessary rerenders. All updates will be enqueued, processed in the next
+tick and batched to minimize the necessary rerenders.
+```ts
+Store.set({ foo: 'bar' });
+Store.set({ num: 2 });
+Store.set({ lastVisit: new Date() });
+```
+
+### Improve IDE auto-import
+If you're exporting `useSub` and `Store` like mentioned in the
+example above, your IDE most likely doesn't suggest to import those
+while typing inside some component. To achieve this you could do the
+following special trick.
+```ts
+const [useSub, Store] = createStore(initialState);
+
+export { useSub, Store };
+```
+
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/fdc-viktor-luft/react-use-sub/blob/master/LICENSE
 [build-image]: https://img.shields.io/travis/fdc-viktor-luft/react-use-sub/master.svg?style=flat-square

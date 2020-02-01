@@ -34,9 +34,9 @@ const _diff = (a: any, b: any): boolean => {
 const _dispatch = <DATA extends {}>(D: InternalDataStore<DATA>): void =>
     batch(() => {
         D.subs.forEach(({ mapper, update, last }) => {
-            const nowMapped = mapper(D.data);
-            if (_diff(nowMapped, last)) {
-                update(nowMapped);
+            const next = mapper(D.data);
+            if (_diff(next, last)) {
+                update(next);
             }
         });
     });
