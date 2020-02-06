@@ -14,7 +14,7 @@ Subscription based lightweight React store.
 - no dependencies
 - no react context
 - TypeScript support included
-- Very small package size (< 1kB gzipped)
+- Very small package size ([< 1kB gzipped](https://bundlephobia.com/result?p=react-use-sub))
 - Much better performance than react-redux
 
 ### Examples
@@ -96,7 +96,7 @@ Please feel free to use multiple subscriptions in a single component.
 export const GreatArticle = () => {
     const { id, author, title } = useSub(({ article }) => article);
     const reviews = useSub(({ reviews }) => reviews);
-    const trailer = useSub(({ trailers, recommendations }) => [trailer[id], recommendations[id]], [id]);
+    const [trailer, recommendation] = useSub(({ trailers, recommendations }) => [trailer[id], recommendations[id]], [id]);
     
     return (...);
 }
@@ -115,6 +115,19 @@ tick and batched to minimize the necessary rerenders.
 Store.set({ foo: 'bar' });
 Store.set({ num: 2 });
 Store.set({ lastVisit: new Date() });
+```
+
+### Multiple stores
+You can instantiate as many stores as you like, but make sure you don't create
+your own hell with too many convoluted stores to subscribe.
+```ts
+import { createStore } from 'react-use-sub';
+
+export const [useArticleSub, ArticleStore] = createStore(initialArticleState);
+
+export const [useCustomerSub, CustomerStore] = createStore(initialCustomerState);
+
+export const [useEventSub, EventStore] = createStore(initialEventState);
 ```
 
 ### Improve IDE auto-import
