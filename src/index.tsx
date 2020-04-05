@@ -43,7 +43,7 @@ const _dispatch = <DATA extends {}>(D: InternalDataStore<DATA>): void =>
 
 const _update = <DATA extends {}>(D: InternalDataStore<DATA>, next: Partial<DATA>): void => {
     const result = {} as any;
-    D.keys.forEach(key => {
+    D.keys.forEach((key) => {
         const p = D.data[key];
         const n = next[key];
         result[key] = n !== undefined ? n : p;
