@@ -9,11 +9,11 @@ type InternalDataStore<DATA> = {
     subs: Set<Sub<DATA, any>>;
     keys: Array<keyof DATA>;
 };
-type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>, deps?: ReadonlyArray<unknown>) => OP;
-type StoreSetArg<DATA> = Partial<DATA> | ((prev: DATA) => Partial<DATA>);
-type StoreSet<DATA> = (update: StoreSetArg<DATA>) => void;
-type StoreType<DATA> = { get: () => DATA; set: StoreSet<DATA> };
-type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
+export type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>, deps?: ReadonlyArray<unknown>) => OP;
+export type StoreSetArg<DATA> = Partial<DATA> | ((prev: DATA) => Partial<DATA>);
+export type StoreSet<DATA> = (update: StoreSetArg<DATA>) => void;
+export type StoreType<DATA> = { get: () => DATA; set: StoreSet<DATA> };
+export type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
 const _enqueue = (fn: () => void) => window.setTimeout(fn, 0);
 const _type = (a: any): string => Object.prototype.toString.call(a);
