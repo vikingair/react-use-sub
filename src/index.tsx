@@ -61,6 +61,7 @@ const _center = <DATA extends {}>(D: InternalDataStore<DATA>): StoreType<DATA> =
 });
 
 const _emptyDeps = [] as ReadonlyArray<undefined>;
+const _initialMapped = {} as any; // only used for initial false comparison
 
 export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA> => {
     const keys: any[] = Object.keys(data);
@@ -74,7 +75,15 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
         const lastDeps = useRef(deps);
         const [mapped, update] = useState<OP>(() => mapper(D.data));
         const sub = useRef<Sub<DATA, OP>>({ mapper, update, last: mapped });
-        sub.current.last = mapped;
+
+        // update last mapped (but only if it really changed due to an update)
+        // this is important to ensure that the changed mapped value of some external
+        // dependency change does not get overridden
+        const lastMapped = useRef<OP>(_initialMapped);
+        if (lastMapped.current !== mapped) {
+            sub.current.last = mapped;
+            lastMapped.current = mapped;
+        }
 
         if (_diffArr(lastDeps.current, deps)) {
             sub.current.mapper = mapper;

@@ -212,6 +212,13 @@ describe('createStore', () => {
         expect(renderCount).toBe(2);
         expect(currentReceived).toBe('bar 2 happy');
 
+        // rerender the component with no different property
+        rerender(<Dummy num={2} some="happy" />);
+
+        // the last change stays to be consistent
+        expect(renderCount).toBe(3);
+        expect(currentReceived).toBe('bar 2 happy');
+
         // the update of the store value still works and
         // updates only once
         act(() => {
@@ -219,19 +226,19 @@ describe('createStore', () => {
         });
         jest.runAllTimers();
 
-        expect(renderCount).toBe(3);
+        expect(renderCount).toBe(4);
         expect(currentReceived).toBe('anything 2 happy');
 
         // even with dep array no update, if mapped value did not change
         Store.set({ foo: 'anything' });
         jest.runAllTimers();
-        expect(renderCount).toBe(3);
+        expect(renderCount).toBe(4);
 
         // rerender the component with different property value for some
         rerender(<Dummy num={2} some="sad" />);
 
         // the dep array did not change, therefore we still return the old value
-        expect(renderCount).toBe(4);
+        expect(renderCount).toBe(5);
         expect(currentReceived).toBe('anything 2 happy');
 
         // rerender the component with different property value for num again
@@ -239,7 +246,7 @@ describe('createStore', () => {
 
         // but after changing the dep array again the latest value for "some"
         // will be considered
-        expect(renderCount).toBe(5);
+        expect(renderCount).toBe(6);
         expect(currentReceived).toBe('anything 3 sad');
     });
 });
