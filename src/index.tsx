@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { unstable_batchedUpdates as batch } from 'react-dom';
 
 type Mapper<DATA, OP> = (state: DATA) => OP;
-type Updater<OP> = (state: OP | ((state: OP) => OP)) => void;
-type Sub<DATA, OP> = { mapper: Mapper<DATA, OP>; update: Updater<OP>; last: OP };
+type Sub<DATA, OP> = { mapper: Mapper<DATA, OP>; update: () => void; last: OP };
 type InternalDataStore<DATA> = {
     data: DATA;
     subs: Set<Sub<DATA, any>>;
@@ -33,10 +32,11 @@ const _diff = (a: any, b: any): boolean => {
 
 const _dispatch = <DATA extends {}>(D: InternalDataStore<DATA>): void =>
     batch(() => {
-        D.subs.forEach(({ mapper, update, last }) => {
-            const next = mapper(D.data);
-            if (_diff(next, last)) {
-                update(next);
+        D.subs.forEach((sub) => {
+            const next = sub.mapper(D.data);
+            if (_diff(next, sub.last)) {
+                sub.last = next;
+                sub.update();
             }
         });
     });
@@ -61,7 +61,12 @@ const _center = <DATA extends {}>(D: InternalDataStore<DATA>): StoreType<DATA> =
 });
 
 const _emptyDeps = [] as ReadonlyArray<undefined>;
-const _initialMapped = {} as any; // only used for initial false comparison
+// helper hook to enforce controlled re-rendering of the component
+const _toggle = (b: boolean) => !b;
+const useUpdate = () => {
+    const setBool = useState(true)[1];
+    return useCallback(() => setBool(_toggle), []);
+};
 
 export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA> => {
     const keys: any[] = Object.keys(data);
@@ -73,17 +78,8 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
     const Store = _center(D);
     const useSub = <OP extends any>(mapper: Mapper<DATA, OP>, deps: ReadonlyArray<unknown> = _emptyDeps): OP => {
         const lastDeps = useRef(deps);
-        const [mapped, update] = useState<OP>(() => mapper(D.data));
-        const sub = useRef<Sub<DATA, OP>>({ mapper, update, last: mapped });
-
-        // update last mapped (but only if it really changed due to an update)
-        // this is important to ensure that the changed mapped value of some external
-        // dependency change does not get overridden
-        const lastMapped = useRef<OP>(_initialMapped);
-        if (lastMapped.current !== mapped) {
-            sub.current.last = mapped;
-            lastMapped.current = mapped;
-        }
+        const update = useUpdate();
+        const sub = useRef<Sub<DATA, OP>>({ mapper, update, last: mapper(D.data) });
 
         if (_diffArr(lastDeps.current, deps)) {
             sub.current.mapper = mapper;
@@ -94,9 +90,9 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
         useEffect(() => {
             D.subs.add(sub.current);
             return () => {
-                D.subs.delete(sub.current); // eslint-disable-line
+                D.subs.delete(sub.current);
             };
-        }, []); // eslint-disable-line
+        }, []);
 
         return sub.current.last;
     };
