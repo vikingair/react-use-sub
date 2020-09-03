@@ -2,13 +2,13 @@ import babel from 'rollup-plugin-babel';
 import typescript from 'rollup-plugin-typescript2';
 
 export default {
-    input: 'src/index.tsx',
+    input: 'index.ts',
     plugins: [
+        typescript(),
         babel({
             exclude: 'node_modules/**',
-            presets: [['@babel/preset-env', { modules: false, targets: { node: '8' } }]],
+            presets: [['@babel/preset-env', { modules: false, targets: { node: '10' } }]],
         }),
-        typescript(),
     ],
     external: ['react', 'react-dom'],
     output: [
