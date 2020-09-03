@@ -39,10 +39,12 @@ export const App = () => {
 // >>> in any other (or same) place
 import { Store } from '/path/to/store.js';
 
-// signature equally to the Setter function of useState
+// signature (almost) equally to the Setter function of useState
 Store.set({ foo: 'something' });
+// or functional
+Store.set(({ foo }) => ({ foo: foo + '_2' }));
 // this updates the stored data
-expect(Store.get()).toEqual({ foo: 'something', num: 2 });
+expect(Store.get()).toEqual({ foo: 'something_2', num: 2 });
 // and updates all components that would be passed
 // different values from the subscribed store mapper
 ```
@@ -60,6 +62,25 @@ type State = { lastVisit?: Date };
 
 // GOOD
 type State = { lastVisit: null | Date };
+```
+
+### Conditional updates
+When calling `Store.set` with `undefined` or a function that returns `undefined` has
+no effect and performs no update.
+```ts
+// only update the stock if articles are present
+Store.set(articles.length ? { stock: articles.length } : undefined);
+// but this easy example could/should be rewritten to
+articles.length && Store.set({ stock: articles.length });
+
+// this feature comes more handy in examples like this
+Store.set(({ articles }) => (articles.length ? { stock: articles.length } : undefined));
+// or equivalent
+Store.set(({ articles }) => {
+    if (articles.length) {
+        return { stock: articles.length };
+    }
+});
 ```
 
 ### Subscription with dependencies

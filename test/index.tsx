@@ -11,8 +11,20 @@ describe('createStore', () => {
         expect(useSub).toBeInstanceOf(Function);
         expect(Store.get()).toEqual({ foo: 'bar', bar: 2 });
 
+        // allows to supply undefined as fallback for "no update required"
+        const currentData = Store.get();
+        Store.set(undefined);
+        Store.set(undefined);
+        Store.set(() => undefined);
+        Store.set(({ foo }) => {
+            if (foo !== 'bar') return { foo: 'bar2' };
+        });
+        expect(Store.get()).toEqual({ foo: 'bar', bar: 2 });
+        expect(Store.get()).toBe(currentData);
+
         Store.set({ foo: 'hop' });
         expect(Store.get()).toEqual({ foo: 'hop', bar: 2 });
+        expect(Store.get()).not.toBe(currentData); // data reference changes on each update
 
         Store.set({ foo: 'hop again', bar: 3 });
         expect(Store.get()).toEqual({ foo: 'hop again', bar: 3 });
@@ -32,7 +44,7 @@ describe('createStore', () => {
         expect(Store.get()).toEqual({ foo: 'hop again 2', bar: null });
 
         // now produce some errors
-        // flow would save us -> see required any casts
+        // TS would save us -> see required any casts
         Store.set(({ foo, bar }) => ({ foo: bar as any, bar: foo as any }));
         expect(Store.get()).toEqual({ bar: 'hop again 2', foo: null });
 
