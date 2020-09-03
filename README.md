@@ -132,13 +132,46 @@ export const [useEventSub, EventStore] = createStore(initialEventState);
 
 ### Improve IDE auto-import
 If you're exporting `useSub` and `Store` like mentioned in the
-example above, your IDE most likely doesn't suggest to import those
+example above, your IDE most likely doesn't suggest importing those
 while typing inside some component. To achieve this you could do the
 following special trick.
 ```ts
 const [useSub, Store] = createStore(initialState);
 
 export { useSub, Store };
+```
+
+### Testing
+You don't need to mock any functions in order to test the integration of
+the store. But you will need to run all timers with jest because all updates
+of components are processed batched.
+```ts
+// in some component
+export const MyExample: React.FC = () => {
+    const stock = useSub(({ article: { stock } }) => stock);
+
+    return <span>Article stock is: {stock}</span>;
+};
+
+// before all tests
+jest.useFakeTimers();
+
+describe('<MyExample />', () => {
+    it('renders the stock', () => {
+        // initialization
+        // feel free to use any-casts in your tests (but only there)
+        Store.set({ article: { stock: 1337 } as any });
+
+        // render with stock 1337
+        const { container } = render(<MyExample />);
+        expect(container.textContent).toBe('Article stock is: 1337');
+
+        // update the stock
+        Store.set({ article: { stock: 444 } as any });
+        jest.runAllTimers();
+        expect(container.textContent).toBe('Article stock is: 444');
+    });
+});
 ```
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg

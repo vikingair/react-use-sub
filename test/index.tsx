@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { createStore } from '../src';
 
 jest.useFakeTimers();
@@ -91,7 +91,7 @@ describe('createStore', () => {
         expect(renderCount).toBe(1);
 
         // only one rerender even if multiple things change
-        act(() => Store.set({ foo: 'change coming', bar: 5 }));
+        Store.set({ foo: 'change coming', bar: 5 });
         jest.runAllTimers();
         expect(renderCount).toBe(2);
         expect(currentReceived).toEqual({
@@ -101,10 +101,8 @@ describe('createStore', () => {
         });
 
         // enqueues multiple calls to Store.set
-        act(() => {
-            Store.set({ foo: 'update 1' });
-            Store.set({ foo: 'update 2' });
-        });
+        Store.set({ foo: 'update 1' });
+        Store.set({ foo: 'update 2' });
         jest.runAllTimers();
         expect(renderCount).toBe(3); // only one render was necessary
         expect(currentReceived.fooMapped).toBe('update 2');
@@ -151,18 +149,16 @@ describe('createStore', () => {
         expect(renderCount).toBe(1);
 
         // only one rerender even if multiple things change
-        act(() => Store.set({ hip: 'next' }));
+        Store.set({ hip: 'next' });
         jest.runAllTimers();
         expect(renderCount).toBe(2);
         expect(currentReceived).toBe('bar next');
         expect(currentReceived2).toBe(null);
 
         // enqueues multiple calls to Store.set
-        act(() => {
-            Store.set({ foo: 'update 1' });
-            Store.set({ test: ['here'] });
-            Store.set({ foo: 'update 2' });
-        });
+        Store.set({ foo: 'update 1' });
+        Store.set({ test: ['here'] });
+        Store.set({ foo: 'update 2' });
         jest.runAllTimers();
         expect(renderCount).toBe(3); // only one render was necessary
         expect(currentReceived).toBe('update 2 next');
@@ -174,9 +170,7 @@ describe('createStore', () => {
         expect(renderCount).toBe(3);
 
         // updates if array length changes
-        act(() => {
-            Store.set({ test: ['here', undefined] });
-        });
+        Store.set({ test: ['here', undefined] });
         jest.runAllTimers();
         expect(renderCount).toBe(4); // only one render was necessary
         expect(currentReceived2).toEqual(['here', undefined]);
@@ -221,9 +215,7 @@ describe('createStore', () => {
 
         // the update of the store value still works and
         // updates only once
-        act(() => {
-            Store.set({ foo: 'anything' });
-        });
+        Store.set({ foo: 'anything' });
         jest.runAllTimers();
 
         expect(renderCount).toBe(4);
@@ -274,19 +266,15 @@ describe('createStore', () => {
 
         // update the store value so that we receive the original value which was also computed last time
         // but only by dependency change
-        act(() => {
-            Store.set({ foo: false });
-        });
+        Store.set({ foo: false });
         jest.runAllTimers();
 
         expect(renderCount).toBe(3);
         expect(currentReceived).toBe(true);
 
         // does not re-render if the last store set wouldn't actually change the outcome
-        act(() => {
-            Store.set({ foo: true });
-            Store.set({ foo: false });
-        });
+        Store.set({ foo: true });
+        Store.set({ foo: false });
         jest.runAllTimers();
 
         expect(renderCount).toBe(3);
