@@ -16,9 +16,10 @@ Subscription based lightweight React store.
 - TypeScript support included
 - Very small package size ([< 1kB gzipped](https://bundlephobia.com/result?p=react-use-sub))
 - Much better performance than react-redux
+- works for SSR
 
 ### Examples
-```js
+```tsx
 // >>> in your store.js
 import { createStore } from 'react-use-sub';
 
@@ -87,7 +88,7 @@ Store.set(({ articles }) => {
 Sometimes you may want to subscribe your component to state that depends
 on additional component state. This can be accomplished with the typical
 dependency array most of us got used to with most basic React hooks.
-```ts
+```tsx
 export const FancyItem: React.FC<{ id: string }> = ({ id }) => {
     const { name, color } = useSub(({ items }) => items[id], [id]);
     
@@ -113,13 +114,13 @@ Store.set({ num: 3 });
 
 ### Multiple subscriptions in a single component
 Please feel free to use multiple subscriptions in a single component.
-```ts
+```tsx
 export const GreatArticle = () => {
     const { id, author, title } = useSub(({ article }) => article);
     const reviews = useSub(({ reviews }) => reviews);
     const [trailer, recommendation] = useSub(({ trailers, recommendations }) => [trailer[id], recommendations[id]], [id]);
     
-    return (...);
+    return <>...</>;
 }
 ```
 Whenever a store update would trigger any of the above subscriptions the
@@ -162,11 +163,37 @@ const [useSub, Store] = createStore(initialState);
 export { useSub, Store };
 ```
 
+### Persisting data on the client
+Because of the simplicity of this library, there are various ways how to persist data. One
+example could be a custom hook persisting into the local storage.
+
+```ts
+const usePersistArticles = () => {
+    const articles = useSub(({ articles }) => articles);
+
+    useEffect(() => {
+        localStorage.setItem('articles', JSON.stringify(articles));
+    }, [articles]);
+};
+
+// and if you want to initialize your store with this data on page reload
+const localStorageArticles = localStorage.getItem('articles');
+const initialState = {
+    articles: localStorageArticles ? JSON.parse(localStorageArticles) : {},
+}
+
+const [useSub, Store] = createStore(initialState);
+```
+
+You can also initialize the data lazy inside another effect of the custom hook. You can
+use `IndexedDB` if you need to store objects that are not lossless serializable to JSON.
+You can use `sessionStorage` or `cookies` depending on your use case. No limitations.
+
 ### Testing
 You don't need to mock any functions in order to test the integration of
 the store. But you will need to run all timers with jest because all updates
 of components are processed batched.
-```ts
+```tsx
 // in some component
 export const MyExample: React.FC = () => {
     const stock = useSub(({ article: { stock } }) => stock);
@@ -174,16 +201,14 @@ export const MyExample: React.FC = () => {
     return <span>Article stock is: {stock}</span>;
 };
 
-// before all tests
-jest.useFakeTimers();
-
 describe('<MyExample />', () => {
     it('renders the stock', () => {
+        jest.useFakeTimers();
         // initialization
         // feel free to use any-casts in your tests (but only there)
         Store.set({ article: { stock: 1337 } as any });
 
-        // render with stock 1337
+        // render with stock 1337 (see '@testing-library/react')
         const { container } = render(<MyExample />);
         expect(container.textContent).toBe('Article stock is: 1337');
 
@@ -198,7 +223,7 @@ describe('<MyExample />', () => {
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/fdc-viktor-luft/react-use-sub/blob/master/LICENSE
 [build-image]: https://img.shields.io/travis/fdc-viktor-luft/react-use-sub/master.svg?style=flat-square
-[build-url]: https://travis-ci.org/fdc-viktor-luft/react-use-sub
+[build-url]: https://travis-ci.com/fdc-viktor-luft/react-use-sub
 [npm-image]: https://img.shields.io/npm/v/react-use-sub.svg?style=flat-square
 [npm-url]: https://www.npmjs.org/package/react-use-sub
 [coveralls-image]: https://coveralls.io/repos/github/fdc-viktor-luft/react-use-sub/badge.svg?branch=master

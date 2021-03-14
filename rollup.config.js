@@ -1,4 +1,4 @@
-import babel from 'rollup-plugin-babel';
+import babel from '@rollup/plugin-babel';
 import typescript from 'rollup-plugin-typescript2';
 
 export default {
@@ -6,8 +6,9 @@ export default {
     plugins: [
         typescript(),
         babel({
+            babelHelpers: 'bundled',
             exclude: 'node_modules/**',
-            presets: [['@babel/preset-env', { modules: false, targets: { node: '10' } }]],
+            presets: [['@babel/preset-env', { modules: false, targets: { node: '12' } }]],
         }),
     ],
     external: ['react', 'react-dom'],
