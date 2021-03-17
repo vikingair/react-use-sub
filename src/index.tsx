@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { unstable_batchedUpdates as batch } from 'react-dom';
+import { unstable_batchedUpdates } from 'react-dom';
+
+export const _config = {
+    enqueue: (fn: () => void) => setTimeout(fn, 0),
+    batch: unstable_batchedUpdates,
+};
 
 type Mapper<DATA, OP> = (state: DATA) => OP;
 type Sub<DATA, OP> = { mapper: Mapper<DATA, OP>; update: () => void; last: OP };
@@ -14,7 +19,6 @@ export type StoreSet<DATA> = (update: StoreSetArg<DATA>) => void;
 export type StoreType<DATA> = { get: () => DATA; set: StoreSet<DATA> };
 export type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
-const _enqueue = (fn: () => void) => window.setTimeout(fn, 0);
 const _type = (a: any): string => Object.prototype.toString.call(a);
 const _diffArr = (a: ReadonlyArray<unknown>, b: ReadonlyArray<unknown>): boolean =>
     a.length !== b.length || a.some((v, i) => b[i] !== v);
@@ -31,7 +35,7 @@ const _diff = (a: any, b: any): boolean => {
 };
 
 const _dispatch = <DATA extends {}>(D: InternalDataStore<DATA>): void =>
-    batch(() => {
+    _config.batch(() => {
         D.subs.forEach((sub) => {
             const next = sub.mapper(D.data);
             if (_diff(next, sub.last)) {
@@ -57,7 +61,7 @@ const _center = <DATA extends {}>(D: InternalDataStore<DATA>): StoreType<DATA> =
         const next: Partial<DATA> | undefined = typeof update === 'function' ? update(D.data) : update;
         if (next) {
             _update(D, next);
-            _enqueue(() => _dispatch(D));
+            _config.enqueue(() => _dispatch(D));
         }
     },
 });

@@ -16,7 +16,7 @@ Subscription based lightweight React store.
 - TypeScript support included
 - Very small package size ([< 1kB gzipped](https://bundlephobia.com/result?p=react-use-sub))
 - Much better performance than react-redux
-- works for SSR
+- works with SSR
 
 ### Examples
 ```tsx
@@ -189,10 +189,48 @@ You can also initialize the data lazy inside another effect of the custom hook. 
 use `IndexedDB` if you need to store objects that are not lossless serializable to JSON.
 You can use `sessionStorage` or `cookies` depending on your use case. No limitations.
 
+### Middlewares
+It's totally up to you to write any sorts of middleware. One example of tracking special
+state updates:
+```ts
+import { createStore, StoreSet } from 'react-use-sub';
+
+type State = { conversionStep: number };
+const initialState: State = { conversionStep: 1 };
+
+const [useSub, _store] = createStore<State>(initialState);
+
+// here comes the middleware implementation
+const set: StoreSet<State> = (update) => {
+    const prevState = _store.get();
+    _store.set(update);
+    const state = _store.get();
+    if (prevState.conversionStep !== state.conversionStep) {
+        trackConversionStep(state.conversionStep)
+    }
+}
+
+// you can also add a reset functionality for Store which is very convenient for logouts
+// with or without tracking. It's all up to you.
+const Store = { ..._store, set, reset: () => _store.set(initialState) };
+
+export { useSub, Store };
+```
+Yes, I know, it's basically just a higher order function. But let's keep things simple.
+
+
 ### Testing
 You don't need to mock any functions in order to test the integration of
-the store. But you will need to run all timers with jest because all updates
-of components are processed batched.
+the store. There is "test-util" that will improve your testing experience a lot.
+The only thing you need to do is importing it. E.g. by putting it into your "setupTests" file.
+```ts
+import 'react-use-sub/test-util';
+```
+Possible downsides: Some optimizations like batched processing of all updates will be disabled.
+You won't notice the performance impact in your tests, but you should not relay on the number
+of renders caused by the store.
+
+Testing would look like this
 ```tsx
 // in some component
 export const MyExample: React.FC = () => {
@@ -201,6 +239,27 @@ export const MyExample: React.FC = () => {
     return <span>Article stock is: {stock}</span>;
 };
 
+describe('<MyExample />', () => {
+    it('renders the stock', () => {
+        // initialization
+        // feel free to use any-casts in your tests (but only there)
+        Store.set({ article: { stock: 1337 } as any });
+
+        // render with stock 1337 (see '@testing-library/react')
+        const { container } = render(<MyExample />);
+        expect(container.textContent).toBe('Article stock is: 1337');
+
+        // update the stock (not need to wrap into "act", it's already done for you)
+        Store.set({ article: { stock: 444 } as any });
+        expect(container.textContent).toBe('Article stock is: 444');
+    });
+});
+```
+
+### Testing (without "test-util")
+You can use the store as is, but you will need to run all timers with jest because 
+all updates of components are processed batched. The above test would become:
+```tsx
 describe('<MyExample />', () => {
     it('renders the stock', () => {
         jest.useFakeTimers();
