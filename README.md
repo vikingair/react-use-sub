@@ -53,15 +53,10 @@ expect(Store.get()).toEqual({ foo: 'something_2', num: 2 });
 ## Hints
 Let me introduce you to some interesting things.
 ### Optional types
-Since TypeScript [can not distinguish](https://github.com/microsoft/TypeScript/issues/13195)
-between missing fields and undefined values, you have to use `null` 
-on top-level. Please don't use optional fields on top-level. Updates
-with `undefined` on top-level will be simply ignored.
+Since version [2.0.0](https://github.com/fdc-viktor-luft/react-use-sub/blob/master/CHANGELOG.md#200---2021-03-21) you
+can simply specify the optional type you want.
 ```ts
-// BAD
 type State = { lastVisit?: Date };
-
-// GOOD
 type State = { lastVisit: null | Date };
 ```
 

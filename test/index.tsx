@@ -30,23 +30,22 @@ describe('createStore', () => {
         expect(Store.get()).toEqual({ foo: 'hop again', bar: 3 });
 
         // invalid property will be ignored
-        // flow would even complain (see any-cast)
+        // @ts-ignore
         Store.set({ ['what' as any]: 'hip' });
         expect(Store.get()).toEqual({ foo: 'hop again', bar: 3 });
 
         Store.set(({ foo, bar }) => ({ foo: foo + ' 2', bar: ++bar }));
         expect(Store.get()).toEqual({ foo: 'hop again 2', bar: 4 });
 
-        // undefined is fine and has no effect
-        // but null is treated as possible value, but bar is of type number
+        // undefined and null is treated as possible value, but bar is of type number
         // therefore the any cast is required
-        Store.set({ foo: undefined, bar: null as any });
-        expect(Store.get()).toEqual({ foo: 'hop again 2', bar: null });
+        Store.set({ foo: undefined as any, bar: null as any });
+        expect(Store.get()).toEqual({ foo: undefined, bar: null });
 
         // now produce some errors
         // TS would save us -> see required any casts
         Store.set(({ foo, bar }) => ({ foo: bar as any, bar: foo as any }));
-        expect(Store.get()).toEqual({ bar: 'hop again 2', foo: null });
+        expect(Store.get()).toEqual({ bar: undefined, foo: null });
 
         // type checks
         Store.get().foo as string;
@@ -67,7 +66,26 @@ describe('createStore', () => {
         expect(Store.get()).toEqual({ foo: 'hop' });
 
         // type checks
-        Store.get().foo as string | null;
+        const typeCheck: string | null = Store.get().foo;
+        expect(typeCheck).toBe('hop');
+    });
+
+    it('allows undefined types', () => {
+        const Store = createStore<{ foo?: string }>({
+            foo: 'bar',
+        })[1];
+
+        expect(Store.get()).toEqual({ foo: 'bar' });
+
+        Store.set({ foo: undefined });
+        expect(Store.get()).toEqual({ foo: undefined });
+
+        Store.set({ foo: 'hop' });
+        expect(Store.get()).toEqual({ foo: 'hop' });
+
+        // type checks
+        const typeCheck: string | undefined = Store.get().foo;
+        expect(typeCheck).toBe('hop');
     });
 
     it('subscribes to store changes for mapped objects', () => {

@@ -14,8 +14,11 @@ type InternalDataStore<DATA> = {
     keys: Array<keyof DATA>;
 };
 export type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>, deps?: ReadonlyArray<unknown>) => OP;
-export type StoreSetArg<DATA> = Partial<DATA> | undefined | ((prev: DATA) => Partial<DATA> | undefined);
-export type StoreSet<DATA> = (update: StoreSetArg<DATA>) => void;
+export type StoreSetArg<DATA, K extends keyof DATA> =
+    | Pick<DATA, K>
+    | undefined
+    | ((prev: DATA) => Pick<DATA, K> | undefined);
+export type StoreSet<DATA> = <K extends keyof DATA>(update: StoreSetArg<DATA, K>) => void;
 export type StoreType<DATA> = { get: () => DATA; set: StoreSet<DATA> };
 export type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
@@ -45,20 +48,19 @@ const _dispatch = <DATA extends {}>(D: InternalDataStore<DATA>): void =>
         });
     });
 
-const _update = <DATA extends {}>(D: InternalDataStore<DATA>, next: Partial<DATA>): void => {
+const _update = <DATA extends {}, K extends keyof DATA>(D: InternalDataStore<DATA>, next: Pick<DATA, K>): void => {
     const result = {} as any;
     D.keys.forEach((key) => {
         const p = D.data[key];
-        const n = next[key];
-        result[key] = n !== undefined ? n : p;
+        result[key] = key in next ? next[key as keyof typeof next] : p;
     });
     D.data = result;
 };
 
 const _center = <DATA extends {}>(D: InternalDataStore<DATA>): StoreType<DATA> => ({
     get: () => D.data,
-    set: (update: StoreSetArg<DATA>) => {
-        const next: Partial<DATA> | undefined = typeof update === 'function' ? update(D.data) : update;
+    set: <K extends keyof DATA>(update: StoreSetArg<DATA, K>) => {
+        const next: Pick<DATA, K> | undefined = typeof update === 'function' ? update(D.data) : update;
         if (next) {
             _update(D, next);
             _config.enqueue(() => _dispatch(D));
