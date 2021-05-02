@@ -45,9 +45,20 @@ Store.set({ foo: 'something' });
 // or functional
 Store.set(({ foo }) => ({ foo: foo + '_2' }));
 // this updates the stored data
-expect(Store.get()).toEqual({ foo: 'something_2', num: 2 });
 // and updates all components that would be passed
 // different values from the subscribed store mapper
+expect(Store.get()).toEqual({ foo: 'something_2', num: 2 });
+
+// or listen to any changes
+// all below mentioned optimizations listed for "useSub" apply also to these listeners
+const removeListener = Store.listen(({ foo }) => foo, (nextFoo, prevFoo) => {
+    // will be only called if "nextFoo !== prevFoo" so you don't need to check this
+    if (nextFoo.length > prevFoo.length) {
+        alert('foo is growing');
+    }
+});
+// and you can unsubscribe by calling the returned callback
+removeListener();
 ```
 
 ## Hints

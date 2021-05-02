@@ -19,7 +19,12 @@ export type StoreSetArg<DATA, K extends keyof DATA> =
     | undefined
     | ((prev: DATA) => Pick<DATA, K> | undefined);
 export type StoreSet<DATA> = <K extends keyof DATA>(update: StoreSetArg<DATA, K>) => void;
-export type StoreType<DATA> = { get: () => DATA; set: StoreSet<DATA> };
+export type StoreRemoveListener = () => void;
+export type StoreListen<DATA> = <OP>(
+    mapper: Mapper<DATA, OP>,
+    listener: (next: OP, prev: OP) => any
+) => StoreRemoveListener;
+export type StoreType<DATA> = { get: () => DATA; set: StoreSet<DATA>; listen: StoreListen<DATA> };
 export type CreateStoreReturn<DATA> = [UseSubType<DATA>, StoreType<DATA>];
 
 const _type = (a: any): string => Object.prototype.toString.call(a);
@@ -65,6 +70,22 @@ const _center = <DATA extends {}>(D: InternalDataStore<DATA>): StoreType<DATA> =
             _update(D, next);
             _config.enqueue(() => _dispatch(D));
         }
+    },
+    listen: <OP extends any>(mapper: Mapper<DATA, OP>, listener: (next: OP, prev: OP) => any): StoreRemoveListener => {
+        const sub = { mapper, last: mapper(D.data) } as Sub<DATA, OP>;
+        let thisLast = sub.last;
+        sub.update = () => {
+            // we have to enqueue the calling of the listener because otherwise expensive listeners could slow down
+            // the notification of all other listeners
+            _config.enqueue(() => {
+                listener(sub.last, thisLast);
+                thisLast = sub.last;
+            });
+        };
+        D.subs.add(sub);
+        return () => {
+            D.subs.delete(sub);
+        };
     },
 });
 

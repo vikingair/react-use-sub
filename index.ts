@@ -1,4 +1,13 @@
-import { createStore, CreateStoreReturn, StoreType, StoreSet, StoreSetArg, UseSubType, _config } from './src';
+import {
+    createStore,
+    CreateStoreReturn,
+    StoreType,
+    StoreSet,
+    StoreListen,
+    StoreSetArg,
+    UseSubType,
+    _config,
+} from './src';
 
 export { createStore, _config };
-export type { CreateStoreReturn, StoreType, StoreSet, StoreSetArg, UseSubType };
+export type { CreateStoreReturn, StoreType, StoreSet, StoreListen, StoreSetArg, UseSubType };

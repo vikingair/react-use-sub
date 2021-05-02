@@ -43,4 +43,57 @@ describe('test-util', () => {
         expect(renderCount).toBe(5);
         expect(currentReceived).toBe(true);
     });
+
+    it('allows to trigger listeners without the need of jest.runAllTimers', () => {
+        const spy = jest.fn();
+        const [, Store] = createStore({ foo: 'bar', num: 42 });
+
+        // when
+        const removeListener = Store.listen(
+            ({ foo, num }) => ({ odd: num % 2 === 1, fooLength: foo.length }),
+            (next, prev) => {
+                // don't make it shorter by putting the spy as listener, because we are also testing the TS integration
+                spy({
+                    odd: next.odd as boolean,
+                    fooLength: next.fooLength as number,
+                    prevOdd: prev.odd as boolean,
+                    prevFooLength: prev.fooLength as number,
+                });
+
+                // return value will be ignored and can be of any type
+                return 'foo';
+            }
+        );
+
+        // initially
+        expect(spy).not.toHaveBeenCalled();
+
+        // when - updating without changing the length of "foo"
+        Store.set({ foo: 'wha' });
+
+        // then
+        expect(spy).not.toHaveBeenCalled();
+
+        // when - updating length of "foo"
+        Store.set({ foo: 'what' });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledWith({ odd: false, fooLength: 4, prevOdd: false, prevFooLength: 3 });
+
+        spy.mockReset();
+        Store.set({ foo: 'yo' });
+        Store.set({ num: 13 });
+
+        // be aware the test utils don't process all requests batched but sequential, hence all updates are received
+        // individually for every call of "Store.set"
+        expect(spy).toHaveBeenCalledTimes(2);
+        expect(spy).toHaveBeenCalledWith({ odd: false, fooLength: 2, prevOdd: false, prevFooLength: 4 });
+        expect(spy).toHaveBeenCalledWith({ odd: true, fooLength: 2, prevOdd: false, prevFooLength: 2 });
+
+        spy.mockReset();
+        removeListener();
+
+        Store.set({ foo: 'update' });
+        expect(spy).not.toHaveBeenCalled();
+    });
 });
