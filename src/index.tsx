@@ -11,7 +11,6 @@ type Sub<DATA, OP> = { mapper: Mapper<DATA, OP>; update: () => void; last: OP };
 type InternalDataStore<DATA> = {
     data: DATA;
     subs: Set<Sub<DATA, any>>;
-    keys: Array<keyof DATA>;
 };
 export type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>, deps?: ReadonlyArray<unknown>) => OP;
 export type StoreSetArg<DATA, K extends keyof DATA> =
@@ -54,10 +53,9 @@ const _dispatch = <DATA extends {}>(D: InternalDataStore<DATA>): void =>
     });
 
 const _update = <DATA extends {}, K extends keyof DATA>(D: InternalDataStore<DATA>, next: Pick<DATA, K>): void => {
-    const result = {} as any;
-    D.keys.forEach((key) => {
-        const p = D.data[key];
-        result[key] = key in next ? next[key as keyof typeof next] : p;
+    const result = { ...D.data };
+    Object.keys(next).forEach((key) => {
+        result[key as keyof typeof next] = next[key as keyof typeof next];
     });
     D.data = result;
 };
@@ -98,11 +96,9 @@ const useUpdate = () => {
 };
 
 export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA> => {
-    const keys: any[] = Object.keys(data);
     const D: InternalDataStore<DATA> = {
         data,
         subs: new Set<Sub<DATA, any>>(),
-        keys,
     };
     const Store = _center(D);
     const useSub = <OP extends any>(mapper: Mapper<DATA, OP>, deps: ReadonlyArray<unknown> = _emptyDeps): OP => {

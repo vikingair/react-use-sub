@@ -29,10 +29,12 @@ describe('createStore', () => {
         Store.set({ foo: 'hop again', bar: 3 });
         expect(Store.get()).toEqual({ foo: 'hop again', bar: 3 });
 
-        // invalid property will be ignored
+        // invalid property will NOT be ignored
         // @ts-ignore
-        Store.set({ ['what' as any]: 'hip' });
-        expect(Store.get()).toEqual({ foo: 'hop again', bar: 3 });
+        Store.set({ what: 'hip' });
+        expect(Store.get()).toEqual({ foo: 'hop again', bar: 3, what: 'hip' });
+        // @ts-ignore
+        Store.set({ what: undefined }); // clear it again
 
         Store.set(({ foo, bar }) => ({ foo: foo + ' 2', bar: ++bar }));
         expect(Store.get()).toEqual({ foo: 'hop again 2', bar: 4 });
