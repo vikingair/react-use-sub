@@ -1,14 +1,16 @@
 import babel from '@rollup/plugin-babel';
-import typescript from 'rollup-plugin-typescript2';
+import resolve from '@rollup/plugin-node-resolve';
+
+const extensions = ['.ts', '.tsx'];
 
 export default {
     input: 'index.ts',
     plugins: [
-        typescript(),
+        resolve({ extensions }),
         babel({
+            extensions,
             babelHelpers: 'bundled',
             exclude: 'node_modules/**',
-            presets: [['@babel/preset-env', { modules: false, targets: { node: '12' } }]],
         }),
     ],
     external: ['react', 'react-dom'],
