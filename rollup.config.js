@@ -4,7 +4,7 @@ import resolve from '@rollup/plugin-node-resolve';
 const extensions = ['.ts', '.tsx'];
 
 export default {
-    input: 'index.ts',
+    input: 'src/index.tsx',
     plugins: [
         resolve({ extensions }),
         babel({
