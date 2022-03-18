@@ -16,7 +16,7 @@ Subscription based lightweight React store.
 - TypeScript support included
 - Very small package size ([< 1kB gzipped](https://bundlephobia.com/result?p=react-use-sub))
 - Much better performance than react-redux
-- works with SSR
+- works with [SSR](#SSR)
 
 ### Examples
 ```tsx
@@ -284,6 +284,42 @@ describe('<MyExample />', () => {
     });
 });
 ```
+
+### SSR
+For SSR you want to create a store instance that is provided by a React context. Otherwise, you'll
+need to prevent store updates on singletons that live in the server scope and share state with other
+requests. To do this you could basically create a `StoreProvider` like this one:
+
+```tsx
+import React, { useMemo } from 'react';
+import { createStore, StoreType, UseSubType } from 'react-use-sub';
+
+const initialState = { foo: 'bar', num: 2 };
+type State = typeof initialState;
+const Context = React.createContext<{ useSub: UseSubType<State>; store: StoreType<State> }>({} as any);
+
+// those can be used everywhere on server- and client-side safely
+export const useStore = (): StoreType<State> => React.useContext(Context).store;
+export const useSub: UseSubType<State> = (...args) => React.useContext(Context).useSub(...args);
+
+// this needs to wrap your whole application
+export const StoreProvider: React.FC = ({ children }) => {
+    const value = useMemo(() => {
+        const [useSub, store] = createStore(initialState);
+        return { useSub, store };
+    }, []);
+    
+    return <Context.Provider value={value}>{children}</Context.Provider>;
+};
+```
+
+You might have already guessed, that this has some caveats, because you would have to get first via
+`useStore` the store in order to make updates or even provide it down in callbacks to perform these
+updates any time later. But this is the complexity price to pay, when handling SSR. We need to make
+sure that updates are not performed by the server that cause conflicts with other incoming requests.
+
+The new hooks `useStore` and `useSub` however are not performing any worse because the React context
+value is not updated after the initial render anymore.
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/fdc-viktor-luft/react-use-sub/blob/master/LICENSE
