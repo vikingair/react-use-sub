@@ -1,8 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { createStore } from '../src';
 
-jest.useFakeTimers();
+const nextTick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('createStore', () => {
     it('creates a store that can be updated', () => {
@@ -11,7 +11,7 @@ describe('createStore', () => {
         expect(useSub).toBeInstanceOf(Function);
         expect(Store.get()).toEqual({ foo: 'bar', bar: 2 });
 
-        // allows to supply undefined as fallback for "no update required"
+        // allows supplying undefined as fallback for "no update required"
         const currentData = Store.get();
         Store.set(undefined);
         Store.set(undefined);
@@ -90,7 +90,7 @@ describe('createStore', () => {
         expect(typeCheck).toBe('hop');
     });
 
-    it('subscribes to store changes for mapped objects', () => {
+    it('subscribes to store changes for mapped objects', async () => {
         const [useSub, Store] = createStore({ foo: 'bar', bar: 2, hip: '' });
         let currentReceived: any = {};
         let renderCount = 0;
@@ -114,17 +114,15 @@ describe('createStore', () => {
 
         // no new render when unmapped prop gets updated
         Store.set({ hip: 'whatever' });
-        jest.runAllTimers();
         expect(renderCount).toBe(1);
 
         // no new render when mapped prop produces same output
         Store.set({ bar: 4 });
-        jest.runAllTimers();
         expect(renderCount).toBe(1);
 
         // only one rerender even if multiple things change
         Store.set({ foo: 'change coming', bar: 5 });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(2);
         expect(currentReceived).toEqual({
             fooMapped: 'change coming',
@@ -135,7 +133,7 @@ describe('createStore', () => {
         // enqueues multiple calls to Store.set
         Store.set({ foo: 'update 1' });
         Store.set({ foo: 'update 2' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(3); // only one render was necessary
         expect(currentReceived.fooMapped).toBe('update 2');
 
@@ -144,11 +142,11 @@ describe('createStore', () => {
 
         // no update will be triggered anymore
         Store.set({ foo: 'anything' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(3);
     });
 
-    it('subscribes to store changes for any other types', () => {
+    it('subscribes to store changes for any other types', async () => {
         const [useSub, Store] = createStore({
             foo: 'bar',
             bar: 2,
@@ -172,38 +170,38 @@ describe('createStore', () => {
 
         // no new render when unmapped prop gets updated
         Store.set({ bar: 777 });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(1);
 
         // no new render when mapped prop produces same output
         Store.set({ hip: '' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(1);
 
         // only one rerender even if multiple things change
         Store.set({ hip: 'next' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(2);
         expect(currentReceived).toBe('bar next');
         expect(currentReceived2).toBe(null);
 
-        // enqueues multiple calls to Store.set
+        // enqueues multiple calls to act(() =>Store.se)t
         Store.set({ foo: 'update 1' });
         Store.set({ test: ['here'] });
         Store.set({ foo: 'update 2' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(3); // only one render was necessary
         expect(currentReceived).toBe('update 2 next');
         expect(currentReceived2).toEqual(['here']);
 
         // no new render when mapped array produces same output
         Store.set({ test: ['here'] });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(3);
 
         // updates if array length changes
         Store.set({ test: ['here', undefined] });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(4); // only one render was necessary
         expect(currentReceived2).toEqual(['here', undefined]);
 
@@ -212,17 +210,17 @@ describe('createStore', () => {
 
         // no update will be triggered anymore
         Store.set({ foo: 'anything' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(4);
     });
 
-    it('allows arbitrary mapper modifications', () => {
+    it('allows arbitrary mapper modifications', async () => {
         const [useSub, Store] = createStore({ foo: 'bar' });
         let currentReceived: any = null;
         let renderCount = 0;
         const Dummy = ({ num, some }: { num: number; some: string }) => {
             ++renderCount;
-            currentReceived = useSub(({ foo }) => `${foo} ${num} ${some}`, [num]);
+            currentReceived = useSub(({ foo }) => `${foo} ${num} ${some}`);
             return null;
         };
         const { rerender } = render(<Dummy num={1} some="happy" />);
@@ -248,39 +246,31 @@ describe('createStore', () => {
         // the update of the store value still works and
         // updates only once
         Store.set({ foo: 'anything' });
-        jest.runAllTimers();
+        await act(nextTick);
 
         expect(renderCount).toBe(4);
         expect(currentReceived).toBe('anything 2 happy');
 
         // even with dep array no update, if mapped value did not change
         Store.set({ foo: 'anything' });
-        jest.runAllTimers();
+        await act(nextTick);
         expect(renderCount).toBe(4);
 
-        // rerender the component with different property value for some
+        // rerender the component with different property for "some"
         rerender(<Dummy num={2} some="sad" />);
 
-        // the dep array did not change, therefore we still return the old value
+        // then
         expect(renderCount).toBe(5);
-        expect(currentReceived).toBe('anything 2 happy');
-
-        // rerender the component with different property value for num again
-        rerender(<Dummy num={3} some="sad" />);
-
-        // but after changing the dep array again the latest value for "some"
-        // will be considered
-        expect(renderCount).toBe(6);
-        expect(currentReceived).toBe('anything 3 sad');
+        expect(currentReceived).toBe('anything 2 sad');
     });
 
-    it('provides updated data for all external changes', () => {
+    it('provides updated data for all external changes', async () => {
         const [useSub, Store] = createStore({ foo: true });
         let currentReceived: any = null;
         let renderCount = 0;
         const Dummy = ({ bool }: { bool: boolean }) => {
             ++renderCount;
-            currentReceived = useSub(({ foo }) => foo === bool, [bool]);
+            currentReceived = useSub(({ foo }) => foo === bool);
             return null;
         };
         const { rerender } = render(<Dummy bool={true} />);
@@ -299,7 +289,7 @@ describe('createStore', () => {
         // update the store value so that we receive the original value which was also computed last time
         // but only by dependency change
         Store.set({ foo: false });
-        jest.runAllTimers();
+        await act(nextTick);
 
         expect(renderCount).toBe(3);
         expect(currentReceived).toBe(true);
@@ -307,15 +297,19 @@ describe('createStore', () => {
         // does not re-render if the last store set wouldn't actually change the outcome
         Store.set({ foo: true });
         Store.set({ foo: false });
-        jest.runAllTimers();
+        await act(nextTick);
 
         expect(renderCount).toBe(3);
         expect(currentReceived).toBe(true);
     });
 
-    it('allows to listen upon store changes', () => {
+    it('allows to listen upon store changes', async () => {
         const spy = jest.fn();
         const [, Store] = createStore({ foo: 'bar', num: 42 });
+        const waitForBatchAndDispatch = async () => {
+            await nextTick();
+            await nextTick();
+        };
 
         // when
         const removeListener = Store.listen(
@@ -323,10 +317,10 @@ describe('createStore', () => {
             (next, prev) => {
                 // don't make it shorter by putting the spy as listener, because we are also testing the TS integration
                 spy({
-                    odd: next.odd as boolean,
-                    fooLength: next.fooLength as number,
-                    prevOdd: prev.odd as boolean,
-                    prevFooLength: prev.fooLength as number,
+                    odd: next.odd,
+                    fooLength: next.fooLength,
+                    prevOdd: prev.odd,
+                    prevFooLength: prev.fooLength,
                 });
 
                 // return value will be ignored and can be of any type
@@ -339,14 +333,14 @@ describe('createStore', () => {
 
         // when - updating without changing the length of "foo"
         Store.set({ foo: 'wha' });
-        jest.runAllTimers();
+        await waitForBatchAndDispatch();
 
         // then
         expect(spy).not.toHaveBeenCalled();
 
         // when - updating length of "foo"
         Store.set({ foo: 'what' });
-        jest.runAllTimers();
+        await waitForBatchAndDispatch();
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({ odd: false, fooLength: 4, prevOdd: false, prevFooLength: 3 });
@@ -354,7 +348,7 @@ describe('createStore', () => {
         spy.mockReset();
         Store.set({ foo: 'yo' });
         Store.set({ num: 13 });
-        jest.runAllTimers();
+        await waitForBatchAndDispatch();
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({ odd: true, fooLength: 2, prevOdd: false, prevFooLength: 4 });
@@ -363,6 +357,7 @@ describe('createStore', () => {
         removeListener();
 
         Store.set({ foo: 'update' });
+        await waitForBatchAndDispatch();
         expect(spy).not.toHaveBeenCalled();
     });
 });

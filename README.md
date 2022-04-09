@@ -95,7 +95,7 @@ Sometimes you may want to subscribe your component to state that depends
 on additional component state. This can be accomplished with the typical
 dependency array most of us got used to with most basic React hooks.
 ```tsx
-export const FancyItem: React.FC<{ id: string }> = ({ id }) => {
+export const FancyItem: React.VFC<{ id: string }> = ({ id }) => {
     const { name, color } = useSub(({ items }) => items[id], [id]);
     
     return <div style={{ color }}>{name}</div>;

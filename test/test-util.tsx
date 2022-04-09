@@ -4,7 +4,7 @@ import { createStore, _config } from '../src';
 import { act } from 'react-dom/test-utils';
 
 _config.batch = act as any;
-_config.enqueue = (fn): any => fn();
+_config.dispatch = (fn): any => fn();
 
 describe('test-util', () => {
     it('allows to update the react state without the need of jest.runAllTimers', () => {
@@ -13,7 +13,7 @@ describe('test-util', () => {
         let renderCount = 0;
         const Dummy = ({ bool }: { bool: boolean }) => {
             ++renderCount;
-            currentReceived = useSub(({ foo }) => foo === bool, [bool]);
+            currentReceived = useSub(({ foo }) => foo === bool);
             return null;
         };
         const { rerender } = render(<Dummy bool={true} />);

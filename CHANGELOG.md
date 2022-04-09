@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [next] - 2022-04-09
+### Added
+- [Migration Guide Next](https://github.com/fdc-viktor-luft/react-use-sub/blob/master/MIGRATIONGUIDE.md#next)
+
+### Changed
+- You can already use the React 18 improved version of this package by installing
+  `react-use-sub@next`. This is not compatible anymore to earlier versions of React, because
+  it makes use of the new hook `useSyncExternalStore` and relies on automatic batching.
+
 ## [2.2.2] - 2022-02-15
 ### Fixed
 - Generating type interface instead of shipping real types to prevent TS errors for consumers.
@@ -30,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0] - 2021-03-21
 ### Added
-- [Migration Guide](https://github.com/fdc-viktor-luft/react-use-sub/blob/master/MIGRATIONGUIDE.md#200)
+- [Migration Guide v2](https://github.com/fdc-viktor-luft/react-use-sub/blob/master/MIGRATIONGUIDE.md#200)
 
 ### Changed
 - Allowing `undefined` types on top-level thanks to
