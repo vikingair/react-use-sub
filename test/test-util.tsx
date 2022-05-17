@@ -96,4 +96,36 @@ describe('test-util', () => {
         Store.set({ foo: 'update' });
         expect(spy).not.toHaveBeenCalled();
     });
+
+    it('works with shallow comparable array subscriptions', () => {
+        const [useSub, Store] = createStore<{ aMap: Record<string, string> }>({ aMap: { '42': 'foo', '44': 'bar' } });
+        let currentReceived: any = null;
+        let renderCount = 0;
+        const Dummy = () => {
+            ++renderCount;
+            currentReceived = useSub(({ aMap }) => Object.keys(aMap));
+            return null;
+        };
+
+        // initial render
+        render(<Dummy />);
+        expect(renderCount).toBe(1);
+        expect(currentReceived).toEqual(['42', '44']);
+
+        // change keys
+        Store.set({ aMap: { '103': 'foo', '404': 'bar' } });
+
+        // then
+        expect(renderCount).toBe(2);
+        expect(currentReceived).toEqual(['103', '404']);
+    });
+
+    // TODO: Make it easier for user to handle errors caused by returned objects not being shallow comparable
+    //       on sub-sequent runs.
+    //       Current error message would be:
+    //           Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside
+    //           componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent
+    //           infinite loops.
+    //       Could cause confusion for users of the lib even though it is pretty valuable information and can be easily
+    //       avoided by combining "useSub" with "useMemo".
 });

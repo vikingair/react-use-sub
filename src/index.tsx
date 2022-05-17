@@ -1,13 +1,12 @@
 import { useRef, useSyncExternalStore } from 'react';
 
-let timeout = undefined as any;
 export const _config = {
     // used to run possibly heavy computations of listeners without blocking other listeners from being called
     dispatch: (fn: () => void) => setTimeout(fn, 0),
     // to support calling the store setters multiple times in a single sync process
-    batch: (fn: () => void) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(fn, 0);
+    batch: (fn: () => void, timeoutRef: { current: any }) => {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(fn, 0);
     },
 };
 
@@ -15,6 +14,7 @@ type Mapper<DATA, OP> = (state: DATA) => OP;
 type InternalDataStore<DATA> = {
     data: DATA;
     subs: Set<() => void>;
+    timeoutRef: { current: any };
 };
 export type UseSubType<DATA> = <OP>(mapper: Mapper<DATA, OP>) => OP;
 export type StoreSetArg<DATA, K extends keyof DATA> =
@@ -61,7 +61,7 @@ const _center = <DATA extends {}>(D: InternalDataStore<DATA>): StoreType<DATA> =
             _update(D, next);
             _config.batch(() => {
                 D.subs.forEach((listener: any) => listener());
-            });
+            }, D.timeoutRef);
         }
     },
     listen: <OP extends any>(mapper: Mapper<DATA, OP>, listener: (next: OP, prev: OP) => any): StoreRemoveListener => {
@@ -91,6 +91,7 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
             D.subs.add(listener);
             return () => D.subs.delete(listener);
         },
+        timeoutRef: { current: undefined },
     };
     const Store = _center(D);
     const useSub = <OP,>(mapper: Mapper<DATA, OP>): OP => {
