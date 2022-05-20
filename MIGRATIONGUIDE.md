@@ -21,18 +21,12 @@ export const FancyItemNext: React.FC<{ id: string }> = ({ id }) => {
 ```
 
 In addition, the new mechanism using the new `useSyncExternalStore` will make subscriptions 
-fail if you use mapper functions that don't produce shallow equal objects. Previously, this
-was just silently causing always updating components on all store updates. But now this is
-necessary to fix. The errors you will see, once you run into it, are looking like these:
-
-```
-Warning: The result of getSnapshot should be cached to avoid an infinite loop
-```
-```
-Uncaught Error: Maximum update depth exceeded. 
-This can happen when a component repeatedly calls setState inside componentWillUpdate 
-or componentDidUpdate. React limits the number of nested updates to prevent infinite loops
-```
+log errors if you use mapper functions that don't produce shallow 
+equal objects. Previously, this was just silently causing always updating components 
+on all store updates. But now, you will be logged an error message like this
+`Your mapper does not produce shallow comparable results`. If you have a solid test coverage
+and were already using the `react-use-sub/test-utils` you should be able to find all broken
+mappers when executing your tests as affected will fail.
 
 An example demonstrates how to fix this issue.
 ```tsx
@@ -60,6 +54,16 @@ export const FancyItemsNext: React.FC = () => {
         </>
     );
 }
+```
+
+To ignore those issues even for local development and in your tests (not recommended), you
+can use this:
+
+```ts
+import { _config } from 'react-use-sub';
+
+// Or make it log the error. Whatever you prefer.
+_config.onError = (_: Error) => undefined;
 ```
 
 

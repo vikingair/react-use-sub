@@ -8,6 +8,12 @@ export const _config = {
         clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(fn, 0);
     },
+    onError: (errMsg: string, ...details: unknown[]): void => {
+        // On local development we want to behave similar as in the deployed version, but be notified about bad
+        // implementations. Following the good practice of React.StrictMode.
+        // eslint-disable-next-line no-console
+        console.error(errMsg, ...details);
+    },
 };
 
 type Mapper<DATA, OP> = (state: DATA) => OP;
@@ -96,7 +102,27 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
     const Store = _center(D);
     const useSub = <OP,>(mapper: Mapper<DATA, OP>): OP => {
         const resultRef = useRef(mapper(D.data));
+        const dataRef = useRef(D.data);
+        const mapperRef = useRef(mapper);
         return useSyncExternalStore(D.subscribe, () => {
+            // to avoid unnecessary mapper calls, we check if something was updated
+            // ATTENTION: By adding this logic this hook should not be combined was non-mutating callbacks using
+            //            e.g. "useRef" or "useEvent" hooks to generate the mappers. We will throw in these cases when
+            //            shipping non production code.
+            const prevData = dataRef.current;
+            dataRef.current = D.data;
+            const prevMapper = mapperRef.current;
+            mapperRef.current = mapper;
+            if (prevData === D.data && prevMapper === mapper) {
+                if (process.env.NODE_ENV !== 'production') {
+                    const current = resultRef.current;
+                    const next = mapper(D.data);
+                    if (_diff(next, current)) {
+                        _config.onError('Your mapper does not produce shallow comparable results', { current, next });
+                    }
+                }
+                return resultRef.current;
+            }
             const next = mapper(D.data);
             if (_diff(next, resultRef.current)) {
                 resultRef.current = next;

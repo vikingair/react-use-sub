@@ -1,10 +1,15 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
-import { createStore } from '../src';
+import { createStore, _config } from '../src';
 
 const nextTick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('createStore', () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+        process.env.NODE_ENV = 'test';
+    });
+
     it('creates a store that can be updated', () => {
         const [useSub, Store] = createStore({ foo: 'bar', bar: 2 });
 
@@ -359,5 +364,96 @@ describe('createStore', () => {
         Store.set({ foo: 'update' });
         await waitForBatchAndDispatch();
         expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('uses an invalid mapper producing always non comparable results without throwing an error', async () => {
+        const onErrorSpy = jest.spyOn(_config, 'onError').mockImplementation();
+        const [useSub, Store] = createStore({ foo: 'bar', bar: 2 });
+
+        let currentReceived: any = null;
+        let renderCount = 0;
+        let lastEntry: any = [['last', 'entry']];
+        const Dummy = () => {
+            ++renderCount;
+            currentReceived = useSub((store) => ({ entries: Object.entries(store).concat(lastEntry) }));
+            return null;
+        };
+        // when
+        const { rerender } = render(<Dummy />);
+
+        // then
+        expect(renderCount).toBe(1);
+        expect(currentReceived).toEqual({
+            entries: [
+                ['foo', 'bar'],
+                ['bar', 2],
+                ['last', 'entry'],
+            ],
+        });
+
+        // when
+        onErrorSpy.mockReset();
+        lastEntry = [['updated', 'entry']];
+        rerender(<Dummy />);
+
+        // then
+        expect(currentReceived).toEqual({
+            entries: [
+                ['foo', 'bar'],
+                ['bar', 2],
+                ['updated', 'entry'],
+            ],
+        });
+        expect(onErrorSpy).toHaveBeenCalled();
+        expect(onErrorSpy.mock.calls[0]).toEqual([
+            'Your mapper does not produce shallow comparable results',
+            {
+                current: {
+                    entries: [
+                        ['foo', 'bar'],
+                        ['bar', 2],
+                        ['updated', 'entry'],
+                    ],
+                },
+                next: {
+                    entries: [
+                        ['foo', 'bar'],
+                        ['bar', 2],
+                        ['updated', 'entry'],
+                    ],
+                },
+            },
+        ]);
+        expect(renderCount).toBe(2);
+
+        // when
+        onErrorSpy.mockReset();
+        process.env.NODE_ENV = 'production';
+        Store.set({ bar: 42 });
+        await act(nextTick);
+
+        // then
+        expect(onErrorSpy).not.toHaveBeenCalled();
+        expect(renderCount).toBe(3);
+        expect(currentReceived).toEqual({
+            entries: [
+                ['foo', 'bar'],
+                ['bar', 42],
+                ['updated', 'entry'],
+            ],
+        });
+    });
+});
+
+describe('_config', () => {
+    it('onError', () => {
+        // given
+        const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+        // when
+        _config.onError('foo', { something: 'else' });
+
+        // then
+        expect(consoleError).toHaveBeenCalledWith('foo', { something: 'else' });
     });
 });
