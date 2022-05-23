@@ -224,6 +224,28 @@ export { useSub, Store };
 ```
 Yes, I know, it's basically just a higher order function. But let's keep things simple.
 
+#### Example: Immer integration
+[Immer](https://immerjs.github.io/immer/) is a package that allows to perform immutable 
+operations while writing mutable ones. Making it less cumbersome to update deeply nested
+data. It is roughly [8x the size](https://bundlephobia.com/package/immer@9.0.14) of this lib,
+but still not extremely large. So you might consider using it to improve readability of your
+code. There is no real need for it, but here's an example of how you could achieve an
+integration very easily.
+```ts
+import immerProduce from 'immer';
+
+const produce = (fn: (current: State) => void): void =>
+    _store.set((current) => immerProduce(current, fn));
+
+const Store = { ..._store, produce };
+
+// and now in other code you can do
+
+Store.produce((state) => {
+    state.items.push({ name: 'new' });
+})
+```
+
 
 ### Testing
 You don't need to mock any functions in order to test the integration of
