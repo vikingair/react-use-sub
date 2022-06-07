@@ -90,20 +90,6 @@ Store.set(({ articles }) => {
 });
 ```
 
-### Subscription with dependencies
-Sometimes you may want to subscribe your component to state that depends
-on additional component state. This can be accomplished with the typical
-dependency array most of us got used to with most basic React hooks.
-```tsx
-export const FancyItem: React.FC<{ id: string }> = ({ id }) => {
-    const { name, color } = useSub(({ items }) => items[id], [id]);
-    
-    return <div style={{ color }}>{name}</div>;
-}
-```
-But you shouldn't provide an empty array as second argument to `useSub`,
-since internal optimizations make this the default.
-
 ### Shallow equality optimization
 The returned value of the defined mapper will be compared shallowly against
 the next computed value to determine if some rerender is necessary. E.g.
@@ -124,7 +110,7 @@ Please feel free to use multiple subscriptions in a single component.
 export const GreatArticle = () => {
     const { id, author, title } = useSub(({ article }) => article);
     const reviews = useSub(({ reviews }) => reviews);
-    const [trailer, recommendation] = useSub(({ trailers, recommendations }) => [trailer[id], recommendations[id]], [id]);
+    const [trailer, recommendation] = useSub(({ trailers, recommendations }) => [trailer[id], recommendations[id]]);
     
     return <>...</>;
 }
@@ -285,12 +271,14 @@ describe('<MyExample />', () => {
 ```
 
 ### Testing (without "test-util")
-You can use the store as is, but you will need to run all timers with jest because 
-all updates of components are processed batched. The above test would become:
+You can use the store as is, but you will need "wait" until the update was processed.
+The above test would become:
 ```tsx
+
+const nextTick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+
 describe('<MyExample />', () => {
-    it('renders the stock', () => {
-        jest.useFakeTimers();
+    it('renders the stock', async () => {
         // initialization
         // feel free to use any-casts in your tests (but only there)
         Store.set({ article: { stock: 1337 } as any });
@@ -301,7 +289,7 @@ describe('<MyExample />', () => {
 
         // update the stock
         Store.set({ article: { stock: 444 } as any });
-        jest.runAllTimers();
+        await nextTick();
         expect(container.textContent).toBe('Article stock is: 444');
     });
 });

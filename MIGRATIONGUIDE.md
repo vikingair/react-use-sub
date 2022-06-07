@@ -1,7 +1,7 @@
 # Migration Guide
 You can find here tips for migrating breaking changes.
 
-## next
+## 3.0.0
 Breaking changes are that you will need to install React 18.
 Also `useSub` now doesn't require the definition of external dependencies anymore.
 ```tsx

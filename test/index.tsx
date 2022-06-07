@@ -7,6 +7,7 @@ const nextTick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 describe('createStore', () => {
     afterEach(() => {
         jest.restoreAllMocks();
+        jest.useRealTimers();
         process.env.NODE_ENV = 'test';
     });
 
@@ -308,13 +309,10 @@ describe('createStore', () => {
         expect(currentReceived).toBe(true);
     });
 
-    it('allows to listen upon store changes', async () => {
+    it('allows to listen upon store changes', () => {
+        jest.useFakeTimers();
         const spy = jest.fn();
         const [, Store] = createStore({ foo: 'bar', num: 42 });
-        const waitForBatchAndDispatch = async () => {
-            await nextTick();
-            await nextTick();
-        };
 
         // when
         const removeListener = Store.listen(
@@ -338,14 +336,14 @@ describe('createStore', () => {
 
         // when - updating without changing the length of "foo"
         Store.set({ foo: 'wha' });
-        await waitForBatchAndDispatch();
+        jest.runAllTimers();
 
         // then
         expect(spy).not.toHaveBeenCalled();
 
         // when - updating length of "foo"
         Store.set({ foo: 'what' });
-        await waitForBatchAndDispatch();
+        jest.runAllTimers();
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({ odd: false, fooLength: 4, prevOdd: false, prevFooLength: 3 });
@@ -353,7 +351,7 @@ describe('createStore', () => {
         spy.mockReset();
         Store.set({ foo: 'yo' });
         Store.set({ num: 13 });
-        await waitForBatchAndDispatch();
+        jest.runAllTimers();
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({ odd: true, fooLength: 2, prevOdd: false, prevFooLength: 4 });
@@ -362,7 +360,7 @@ describe('createStore', () => {
         removeListener();
 
         Store.set({ foo: 'update' });
-        await waitForBatchAndDispatch();
+        jest.runAllTimers();
         expect(spy).not.toHaveBeenCalled();
     });
 
