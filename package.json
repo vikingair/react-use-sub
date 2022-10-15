@@ -1,9 +1,9 @@
 {
   "name": "react-use-sub",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Subscription based lightweight React store",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -28,7 +28,7 @@
   "license": "MIT",
   "scripts": {
     "dist": "rm -rf dist && rollup -c && tsc -p tsconfig.publish.json && mv dist/index.d.ts index.d.ts && rm dist/index.js",
-    "eslint": "eslint --cache --cache-location 'build/.eslintcache' --ext .ts,.tsx src/ test/",
+    "eslint": "eslint --ext .ts,.tsx src/ test/",
     "test": "tsc && pnpm eslint && pnpm test-coverage",
     "test-coverage": "jest --all --coverage --colors",
     "coveralls": "cat ./build/coverage/lcov.info | coveralls"

@@ -313,7 +313,7 @@ export const useStore = (): StoreType<State> => React.useContext(Context).store;
 export const useSub: UseSubType<State> = (...args) => React.useContext(Context).useSub(...args);
 
 // this needs to wrap your whole application
-export const StoreProvider: React.FC = ({ children }) => {
+export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const value = useMemo(() => {
         const [useSub, store] = createStore(initialState);
         return { useSub, store };
@@ -330,6 +330,42 @@ sure that updates are not performed by the server that cause conflicts with othe
 
 The new hooks `useStore` and `useSub` however are not performing any worse because the React context
 value is not updated after the initial render anymore.
+
+#### Using Server state
+You can choose to invoke the store setter only by `useEffect` hooks. Then there is no state other than
+the same initial state that you're using on server side and nothing need to by synced back to the client.
+
+But, if you really want to call the store setter on server side, then you need to initialize the store on
+client side with the state that was added on server side. For this you need to render the state as serializable
+JSON into the delivered HTML file and then create the store with that state. Depending on your SSR solution
+you can choose various ways to achieve this.
+
+E.g. on server side your code could look like this:
+
+```tsx
+const renderFullPage = (html, preloadedState) => (`
+<!doctype html>
+<html>
+  <head>
+    <title>Redux Universal Example</title>
+    <script>
+      window.__PRELOADED_STATE__ = ${JSON.stringify(preloadedState)}
+    </script>
+  </head>
+  <body>
+    <div id="root">${html}</div>
+    <script src="/static/bundle.js"></script>
+  </body>
+</html>
+`
+);
+```
+
+And in the code initializing the store you can have this logic:
+
+```tsx
+createStore(typeof window === 'undefined' ? initialState : window.__PRELOADED_STATE__);
+```
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/fdc-viktor-luft/react-use-sub/blob/master/LICENSE

@@ -104,7 +104,7 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
         const resultRef = useRef(mapper(D.data));
         const dataRef = useRef(D.data);
         const mapperRef = useRef(mapper);
-        return useSyncExternalStore(D.subscribe, () => {
+        const selector = () => {
             // to avoid unnecessary mapper calls, we check if something was updated
             // ATTENTION: By adding this logic this hook should not be combined was non-mutating callbacks using
             //            e.g. "useRef" or "useEvent" hooks to generate the mappers. We will throw in these cases when
@@ -118,7 +118,10 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
                     const current = resultRef.current;
                     const next = mapper(D.data);
                     if (_diff(next, current)) {
-                        _config.onError('Your mapper does not produce shallow comparable results', { current, next });
+                        _config.onError('Your mapper does not produce shallow comparable results', {
+                            current,
+                            next,
+                        });
                     }
                 }
                 return resultRef.current;
@@ -128,7 +131,11 @@ export const createStore = <DATA extends {}>(data: DATA): CreateStoreReturn<DATA
                 resultRef.current = next;
             }
             return resultRef.current;
-        });
+        };
+
+        // As getServerSnapshot we're passing the same selector. In order to use the state from server
+        // the initialization of the data has to be done with the data from Server on client side
+        return useSyncExternalStore(D.subscribe, selector, selector);
     };
 
     return [useSub, Store];
