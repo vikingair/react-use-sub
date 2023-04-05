@@ -5,13 +5,12 @@
   "engines": {
     "node": ">=14"
   },
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "index.d.ts",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist",
-    "test-util",
-    "index.d.ts"
+    "test-util"
   ],
   "sideEffects": false,
   "repository": {
@@ -27,43 +26,36 @@
   "author": "Viktor Luft <viktor.luft@freiheit.com> (https://github.com/fdc-viktor-luft)",
   "license": "MIT",
   "scripts": {
-    "dist": "rm -rf dist && rollup -c && tsc -p tsconfig.publish.json && mv dist/index.d.ts index.d.ts && rm dist/index.js",
-    "eslint": "eslint --ext .ts,.tsx src/ test/",
-    "test": "tsc && pnpm eslint && pnpm test-coverage",
-    "test-coverage": "jest --all --coverage --colors",
-    "coveralls": "cat ./build/coverage/lcov.info | coveralls"
+    "dist": "vite build && tsc -p tsconfig.publish.json",
+    "lint": "pnpm eslint && pnpm lint:ts",
+    "lint:es": "eslint --ext .ts,.tsx src/ test/",
+    "lint:ts": "tsc",
+    "test": "vitest --coverage",
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
   },
   "peerDependencies": {
     "react": ">= 18.0.0",
     "react-dom": ">= 18.0.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.18.2",
-    "@babel/plugin-proposal-class-properties": "^7.17.12",
-    "@babel/preset-env": "^7.18.2",
-    "@babel/preset-react": "^7.17.12",
-    "@babel/preset-typescript": "^7.17.12",
-    "@rollup/plugin-babel": "^5.3.1",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@testing-library/react": "^13.3.0",
-    "@types/jest": "^28.1.1",
-    "@types/node": "^17.0.40",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "@typescript-eslint/eslint-plugin": "^5.27.1",
-    "@typescript-eslint/parser": "^5.27.1",
-    "babel-jest": "^28.1.1",
+    "@testing-library/react": "^14.0.0",
+    "@types/node": "^18.15.11",
+    "@types/react": "^18.0.33",
+    "@types/react-dom": "^18.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "@vitest/coverage-c8": "^0.29.8",
     "coveralls": "^3.1.1",
-    "eslint": "^8.17.0",
-    "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "eslint-plugin-react": "^7.30.0",
-    "jest": "^28.1.1",
-    "jest-environment-jsdom": "^28.1.1",
-    "prettier": "^2.6.2",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "rollup": "^2.75.6",
-    "typescript": "^4.7.3"
+    "eslint": "^8.37.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.32.2",
+    "jsdom": "^21.1.1",
+    "prettier": "^2.8.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.0.3",
+    "vite": "^4.2.1",
+    "vitest": "^0.29.8"
   }
 }
