@@ -1,8 +1,7 @@
-[![GitHub license][license-image]][license-url]
-[![npm package][npm-image]][npm-url] 
-[![Travis][build-image]][build-url]
+[![License][license-image]][license-url]
+[![npm package][npm-image]][npm-url]
+[![GitHub Push][push-image]][push-url]
 [![Coverage Status][coveralls-image]][coveralls-url]
-[![styled with prettier][prettier-image]][prettier-url]
 
 # react-use-sub
 
@@ -369,11 +368,9 @@ createStore(typeof window === 'undefined' ? initialState : window.__PRELOADED_ST
 
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-url]: https://github.com/fdc-viktor-luft/react-use-sub/blob/master/LICENSE
-[build-image]: https://img.shields.io/travis/fdc-viktor-luft/react-use-sub/master.svg?style=flat-square
-[build-url]: https://app.travis-ci.com/fdc-viktor-luft/react-use-sub
+[push-image]: https://github.com/fdc-viktor-luft/react-use-sub/actions/workflows/push.yml/badge.svg
+[push-url]: https://github.com/fdc-viktor-luft/react-use-sub/actions/workflows/push.yml
 [npm-image]: https://img.shields.io/npm/v/react-use-sub.svg?style=flat-square
 [npm-url]: https://www.npmjs.org/package/react-use-sub
 [coveralls-image]: https://coveralls.io/repos/github/fdc-viktor-luft/react-use-sub/badge.svg?branch=master
 [coveralls-url]: https://coveralls.io/github/fdc-viktor-luft/react-use-sub?branch=master
-[prettier-image]: https://img.shields.io/badge/styled_with-prettier-ff69b4.svg
-[prettier-url]: https://github.com/prettier/prettier

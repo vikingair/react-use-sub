@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { createStore, _config } from '../src';
@@ -45,7 +46,7 @@ describe('test-util', () => {
     });
 
     it('allows to trigger listeners without the need of jest.runAllTimers', () => {
-        const spy = jest.fn();
+        const spy = vi.fn();
         const [, Store] = createStore({ foo: 'bar', num: 42 });
 
         // when

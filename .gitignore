@@ -1,6 +1,6 @@
 /.idea
 /dist
-/build
+/coverage
 /node_modules
 index.d.ts
 

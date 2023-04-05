@@ -17,5 +17,5 @@
     "jsx": "react",
     "noEmit": true
   },
-  "include": ["src", "test", "test_resources"]
+  "include": ["src", "test", "test_resources", "vite.config.ts"]
 }

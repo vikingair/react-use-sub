@@ -1,3 +1,4 @@
+import { describe, it, afterEach, expect, vi } from 'vitest';
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { createStore, _config } from '../src';
@@ -6,8 +7,8 @@ const nextTick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('createStore', () => {
     afterEach(() => {
-        jest.restoreAllMocks();
-        jest.useRealTimers();
+        vi.restoreAllMocks();
+        vi.useRealTimers();
         process.env.NODE_ENV = 'test';
     });
 
@@ -310,8 +311,8 @@ describe('createStore', () => {
     });
 
     it('allows to listen upon store changes', () => {
-        jest.useFakeTimers();
-        const spy = jest.fn();
+        vi.useFakeTimers();
+        const spy = vi.fn();
         const [, Store] = createStore({ foo: 'bar', num: 42 });
 
         // when
@@ -336,14 +337,14 @@ describe('createStore', () => {
 
         // when - updating without changing the length of "foo"
         Store.set({ foo: 'wha' });
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         // then
         expect(spy).not.toHaveBeenCalled();
 
         // when - updating length of "foo"
         Store.set({ foo: 'what' });
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({ odd: false, fooLength: 4, prevOdd: false, prevFooLength: 3 });
@@ -351,7 +352,7 @@ describe('createStore', () => {
         spy.mockReset();
         Store.set({ foo: 'yo' });
         Store.set({ num: 13 });
-        jest.runAllTimers();
+        vi.runAllTimers();
 
         expect(spy).toHaveBeenCalledTimes(1);
         expect(spy).toHaveBeenCalledWith({ odd: true, fooLength: 2, prevOdd: false, prevFooLength: 4 });
@@ -360,12 +361,12 @@ describe('createStore', () => {
         removeListener();
 
         Store.set({ foo: 'update' });
-        jest.runAllTimers();
+        vi.runAllTimers();
         expect(spy).not.toHaveBeenCalled();
     });
 
     it('uses an invalid mapper producing always non comparable results without throwing an error', async () => {
-        const onErrorSpy = jest.spyOn(_config, 'onError').mockImplementation();
+        const onErrorSpy = vi.spyOn(_config, 'onError').mockReturnValue();
         const [useSub, Store] = createStore({ foo: 'bar', bar: 2 });
 
         let currentReceived: any = null;
@@ -446,7 +447,7 @@ describe('createStore', () => {
 describe('_config', () => {
     it('onError', () => {
         // given
-        const consoleError = jest.spyOn(console, 'error').mockImplementation();
+        const consoleError = vi.spyOn(console, 'error').mockReturnValue();
 
         // when
         _config.onError('foo', { something: 'else' });
