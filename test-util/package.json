@@ -1,5 +1,5 @@
 {
   "name": "react-use-sub-test-util",
-  "main": "cjs.index.js",
-  "module": "esm.index.js"
+  "main": "index.cjs",
+  "module": "index.mjs"
 }
