@@ -1,5 +1,5 @@
-import { act } from 'react-dom/test-utils';
-import { _config } from '../dist/esm';
+const { act } = require('@testing-library/react');
+const { _config } = require('../dist/cjs');
 
 _config.batch = act;
 _config.dispatch = (fn) => fn();

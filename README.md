@@ -1,13 +1,14 @@
+# react-use-sub
+
 [![License][license-image]][license-url]
 [![npm package][npm-image]][npm-url]
 [![GitHub Push][push-image]][push-url]
 [![Coverage Status][coveralls-image]][coveralls-url]
 
-# react-use-sub
-
 Subscription based lightweight React store.
 
-### Benefits
+## Benefits
+
 - easy to use
 - easy testing
 - no dependencies
@@ -15,9 +16,10 @@ Subscription based lightweight React store.
 - TypeScript support included
 - Very small package size ([< 1kB gzipped](https://bundlephobia.com/result?p=react-use-sub))
 - Much better performance than react-redux
-- works with [SSR](#SSR)
+- works with [SSR](#ssr)
 
-### Examples
+## Examples
+
 ```tsx
 // >>> in your store.js
 import { createStore } from 'react-use-sub';
@@ -61,18 +63,24 @@ removeListener();
 ```
 
 ## Hints
+
 Let me introduce you to some interesting things.
+
 ### Optional types
+
 Since version [2.0.0](https://github.com/fdc-viktor-luft/react-use-sub/blob/master/CHANGELOG.md#200---2021-03-21) you
 can simply specify the optional type you want.
+
 ```ts
 type State = { lastVisit?: Date };
 type State = { lastVisit: null | Date };
 ```
 
 ### Conditional updates
+
 When calling `Store.set` with `undefined` or a function that returns `undefined` has
 no effect and performs no update.
+
 ```ts
 // only update the stock if articles are present
 Store.set(articles.length ? { stock: articles.length } : undefined);
@@ -90,9 +98,11 @@ Store.set(({ articles }) => {
 ```
 
 ### Shallow equality optimization
+
 The returned value of the defined mapper will be compared shallowly against
 the next computed value to determine if some rerender is necessary. E.g.
 following the example of the `App` component above:
+
 ```ts
 // if Store.get().foo === 'bar'
 Store.set({ foo: '123' });
@@ -104,7 +114,9 @@ Store.set({ num: 3 });
 ```
 
 ### Multiple subscriptions in a single component
+
 Please feel free to use multiple subscriptions in a single component.
+
 ```tsx
 export const GreatArticle = () => {
     const { id, author, title } = useSub(({ article }) => article);
@@ -114,16 +126,19 @@ export const GreatArticle = () => {
     return <>...</>;
 }
 ```
+
 Whenever a store update would trigger any of the above subscriptions the
 component will be rerendered only once even if all subscriptions would
 return different data. That's a pretty important capability when thinking
 about custom hooks that subscribe to certain states.
 
 ### Multiple store updates
+
 If you perform multiple store updates in the same synchronous task this
 has (almost) no negative impact on your performance and leads not to any
 unnecessary rerenders. All updates will be enqueued, processed in the next
 tick and batched to minimize the necessary rerenders.
+
 ```ts
 Store.set({ foo: 'bar' });
 Store.set({ num: 2 });
@@ -131,8 +146,10 @@ Store.set({ lastVisit: new Date() });
 ```
 
 ### Multiple stores
+
 You can instantiate as many stores as you like, but make sure you don't create
 your own hell with too many convoluted stores to subscribe.
+
 ```ts
 import { createStore } from 'react-use-sub';
 
@@ -144,10 +161,12 @@ export const [useEventSub, EventStore] = createStore(initialEventState);
 ```
 
 ### Improve IDE auto-import
+
 If you're exporting `useSub` and `Store` like mentioned in the
 example above, your IDE most likely doesn't suggest importing those
 while typing inside some component. To achieve this you could do the
 following special trick.
+
 ```ts
 const [useSub, Store] = createStore(initialState);
 
@@ -155,6 +174,7 @@ export { useSub, Store };
 ```
 
 ### Persisting data on the client
+
 Because of the simplicity of this library, there are various ways how to persist data. One
 example could be a custom hook persisting into the local storage.
 
@@ -181,8 +201,10 @@ use `IndexedDB` if you need to store objects that are not lossless serializable 
 You can use `sessionStorage` or `cookies` depending on your use case. No limitations.
 
 ### Middlewares
+
 It's totally up to you to write any sorts of middleware. One example of tracking special
 state updates:
+
 ```ts
 import { createStore, StoreSet } from 'react-use-sub';
 
@@ -207,15 +229,18 @@ const Store = { ..._store, set, reset: () => _store.set(initialState) };
 
 export { useSub, Store };
 ```
+
 Yes, I know, it's basically just a higher order function. But let's keep things simple.
 
 #### Example: Immer integration
-[Immer](https://immerjs.github.io/immer/) is a package that allows to perform immutable 
+
+[Immer](https://immerjs.github.io/immer/) is a package that allows to perform immutable
 operations while writing mutable ones. Making it less cumbersome to update deeply nested
 data. It is roughly [8x the size](https://bundlephobia.com/package/immer@9.0.14) of this lib,
 but still not extremely large. So you might consider using it to improve readability of your
 code. There is no real need for it, but here's an example of how you could achieve an
 integration very easily.
+
 ```ts
 import immerProduce from 'immer';
 
@@ -231,19 +256,22 @@ Store.produce((state) => {
 })
 ```
 
-
 ### Testing
+
 You don't need to mock any functions in order to test the integration of
 the store. There is "test-util" that will improve your testing experience a lot.
 The only thing you need to do is importing it. E.g. by putting it into your "setupTests" file.
+
 ```ts
 import 'react-use-sub/test-util';
 ```
+
 Possible downsides: Some optimizations like batched processing of all updates will be disabled.
 You won't notice the performance impact in your tests, but you should not relay on the number
 of renders caused by the store.
 
 Testing would look like this
+
 ```tsx
 // in some component
 export const MyExample: React.FC = () => {
@@ -270,10 +298,11 @@ describe('<MyExample />', () => {
 ```
 
 ### Testing (without "test-util")
+
 You can use the store as is, but you will need "wait" until the update was processed.
 The above test would become:
-```tsx
 
+```tsx
 const nextTick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('<MyExample />', () => {
@@ -295,6 +324,7 @@ describe('<MyExample />', () => {
 ```
 
 ### SSR
+
 For SSR you want to create a store instance that is provided by a React context. Otherwise, you'll
 need to prevent store updates on singletons that live in the server scope and share state with other
 requests. To do this you could basically create a `StoreProvider` like this one:
@@ -331,6 +361,7 @@ The new hooks `useStore` and `useSub` however are not performing any worse becau
 value is not updated after the initial render anymore.
 
 #### Using Server state
+
 You can choose to invoke the store setter only by `useEffect` hooks. Then there is no state other than
 the same initial state that you're using on server side and nothing need to by synced back to the client.
 
