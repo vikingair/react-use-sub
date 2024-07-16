@@ -1,6 +1,6 @@
 {
   "name": "react-use-sub",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Subscription based lightweight React store",
   "engines": {
     "node": ">=18"
